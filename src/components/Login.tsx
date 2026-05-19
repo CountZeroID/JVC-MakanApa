@@ -133,7 +133,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                     <button 
                         onClick={handleGoogle}
                         disabled={loadingMethod !== null}
-                        className="w-full bg-white border border-border text-gray-800 font-bold py-4 rounded-xl flex items-center justify-center gap-3 shadow-sm hover:bg-gray-50 transition-colors active:scale-[0.98] disabled:opacity-75"
+                        className="w-full bg-white border border-border text-gray-800 font-bold py-4 rounded-xl flex items-center justify-center gap-3 shadow-sm hover:bg-gray-50 transition-colors active:scale-[0.98] disabled:opacity-75 cursor-pointer disabled:cursor-not-allowed"
                     >
                         {loadingMethod === 'google' ? (
                             <div className="flex items-center gap-2">
@@ -151,7 +151,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                     <button 
                         onClick={() => setMode('email')}
                         disabled={loadingMethod !== null}
-                        className="w-full bg-primary text-white font-bold py-4 rounded-xl shadow-[0_4px_20px_rgba(123,97,255,0.3)] hover:bg-primary-light transition-colors active:scale-[0.98]"
+                        className="w-full bg-primary text-white font-bold py-4 rounded-xl shadow-[0_4px_20px_rgba(123,97,255,0.3)] hover:bg-primary-light transition-colors active:scale-[0.98] cursor-pointer disabled:cursor-not-allowed"
                     >
                         Masuk dengan Email
                     </button>
@@ -159,7 +159,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                     <button 
                         onClick={() => setMode('phone')}
                         disabled={loadingMethod !== null}
-                        className="w-full bg-transparent border-2 border-primary text-primary font-bold py-4 rounded-xl hover:bg-primary/5 transition-colors active:scale-[0.98]"
+                        className="w-full bg-transparent border-2 border-primary text-primary font-bold py-4 rounded-xl hover:bg-primary/5 transition-colors active:scale-[0.98] cursor-pointer disabled:cursor-not-allowed"
                     >
                         Masuk dengan No. HP
                     </button>
@@ -175,7 +175,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                             setIsSignUp(true);
                             setMode('email');
                         }}
-                        className="w-full text-text-secondary font-bold text-sm hover:text-primary transition-colors"
+                        className="w-full text-text-secondary font-bold text-sm hover:text-primary transition-colors cursor-pointer"
                     >
                         Daftar akun baru
                     </button>
@@ -200,7 +200,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                             }
                         }}
                         disabled={loadingMethod !== null}
-                        className="w-full bg-transparent border border-border text-text-secondary font-bold py-3.5 rounded-xl flex items-center justify-center gap-3 shadow-sm hover:bg-bg-main transition-colors active:scale-[0.98] disabled:opacity-75"
+                        className="w-full bg-transparent border border-border text-text-secondary font-bold py-3.5 rounded-xl flex items-center justify-center gap-3 shadow-sm hover:bg-bg-main transition-colors active:scale-[0.98] disabled:opacity-75 cursor-pointer disabled:cursor-not-allowed"
                     >
                         {loadingMethod === 'guest' ? (
                             <div className="flex items-center gap-2">
@@ -228,7 +228,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                             localStorage.setItem('user_agreement_accepted', 'true');
                             setShowAgreement(false);
                         }}
-                        className="w-full bg-primary text-white font-bold py-4 rounded-xl shadow-[0_4px_20px_rgba(45,106,79,0.3)] hover:bg-primary-light transition-transform active:scale-[0.98]"
+                        className="w-full bg-primary text-white font-bold py-4 rounded-xl shadow-[0_4px_20px_rgba(45,106,79,0.3)] hover:bg-primary-light transition-transform active:scale-[0.98] cursor-pointer"
                     >
                         {t.btn_setuju}
                     </button>
@@ -261,16 +261,16 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                         <button 
                             type="submit"
                             disabled={loadingMethod !== null}
-                            className="w-full bg-primary text-white font-bold py-4 rounded-xl mt-2 active:scale-[0.98] transition-transform"
+                            className="w-full bg-primary text-white font-bold py-4 rounded-xl mt-2 active:scale-[0.98] transition-transform cursor-pointer disabled:cursor-not-allowed"
                         >
                             {loadingMethod === 'email' ? 'Memproses...' : (isSignUp ? 'Daftar' : 'Masuk')}
                         </button>
                     </form>
                     <div className="mt-6 text-center">
-                        <button onClick={() => setIsSignUp(!isSignUp)} className="text-xs font-bold text-primary mb-4 block w-full">
+                        <button onClick={() => setIsSignUp(!isSignUp)} className="text-xs font-bold text-primary mb-4 block w-full cursor-pointer">
                             {isSignUp ? 'Sudah punya akun? Masuk' : 'Belum punya akun? Daftar'}
                         </button>
-                        <button onClick={() => { setMode('options'); setError(''); }} className="text-xs font-bold text-text-muted w-full">
+                        <button onClick={() => { setMode('options'); setError(''); }} className="text-xs font-bold text-text-muted w-full cursor-pointer">
                             Kembali
                         </button>
                     </div>
