@@ -1,0 +1,15 @@
+{
+  "name": "MakanApa",
+  "short_name": "MakanApa",
+  "theme_color": "#2D6A4F",
+  "background_color": "#FAFAF8",
+  "display": "standalone",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

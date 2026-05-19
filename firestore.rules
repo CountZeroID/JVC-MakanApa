@@ -1,0 +1,88 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    
+    function isValidId(id) { 
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); 
+    }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isSignedIn() { return request.auth != null; }
+    
+    function isValidFoodLog(data) {
+      return data.keys().hasAll(['userId', 'nama_makanan', 'emoji', 'kategori', 'meal_type', 'kalori', 'karbohidrat_g', 'protein_g', 'lemak_g', 'serat_g', 'timestamp', 'date_key'])
+        && data.keys().size() >= 12
+        && data.keys().size() <= 25
+        && data.userId == request.auth.uid
+        && data.userId is string && data.userId.size() <= 128
+        && data.nama_makanan is string && data.nama_makanan.size() <= 200
+        && data.emoji is string && data.emoji.size() <= 10
+        && data.kategori is string && data.kategori.size() <= 100
+        && data.meal_type is string && data.meal_type.size() <= 30
+        && data.kalori is number
+        && data.karbohidrat_g is number
+        && data.protein_g is number
+        && data.lemak_g is number
+        && data.serat_g is number
+        && data.timestamp == request.time
+        && data.date_key is string && data.date_key.size() <= 15;
+    }
+
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['userId', 'nama', 'usia', 'gender', 'berat_kg', 'tinggi_cm', 'tujuan', 'alergi', 'target_kalori', 'target_protein_g', 'target_karbo_g', 'target_lemak_g'])
+        && data.keys().size() >= 12
+        && data.keys().size() <= 16
+        && data.userId == request.auth.uid
+        && data.userId is string && data.userId.size() <= 128
+        && data.nama is string && data.nama.size() <= 200
+        && data.usia is number
+        && data.gender is string && data.gender.size() <= 20
+        && data.berat_kg is number
+        && data.tinggi_cm is number
+        && data.tujuan is string && data.tujuan.size() <= 100
+        && data.alergi is list && data.alergi.size() <= 20
+        && (data.alergi.size() == 0 || data.alergi[0] is string)
+        && data.target_kalori is number
+        && data.target_protein_g is number
+        && data.target_karbo_g is number
+        && data.target_lemak_g is number;
+    }
+
+    match /user_profiles/{userId} {
+      allow get: if isSignedIn() && userId == request.auth.uid;
+      allow list: if false; // Users shouldn't list profiles, they just query their own
+      allow create: if isSignedIn() && userId == request.auth.uid && isValidUserProfile(incoming());
+      allow update: if isSignedIn() && userId == request.auth.uid && isValidUserProfile(incoming());
+      allow delete: if isSignedIn() && userId == request.auth.uid;
+    }
+
+    function isValidNaraChat(data) {
+      return data.keys().hasAll(['userId', 'role', 'text', 'timestamp', 'date_key'])
+        && data.keys().size() == 5
+        && data.userId == request.auth.uid
+        && data.userId is string && data.userId.size() <= 128
+        && data.role in ['user', 'model', 'assistant']
+        && data.text is string && data.text.size() <= 4000
+        && data.date_key is string && data.date_key.size() <= 15;
+    }
+
+    match /nara_chats/{chatId} {
+      allow get: if isSignedIn() && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidNaraChat(incoming());
+      allow update: if false; // Chats are append-only
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+
+    match /food_logs/{logId} {
+      allow get: if isSignedIn() && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(logId) && isValidFoodLog(incoming());
+      allow update: if false; 
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+  }
+}

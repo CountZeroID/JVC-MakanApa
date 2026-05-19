@@ -1,0 +1,74 @@
+{
+  "entities": {
+    "FoodLog": {
+      "title": "FoodLog",
+      "description": "A food entry logged by the user.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "nama_makanan": { "type": "string" },
+        "emoji": { "type": "string" },
+        "kategori": { "type": "string" },
+        "meal_type": { "type": "string" },
+        "kalori": { "type": "number" },
+        "karbohidrat_g": { "type": "number" },
+        "protein_g": { "type": "number" },
+        "lemak_g": { "type": "number" },
+        "serat_g": { "type": "number" },
+        "timestamp": { "type": "string" },
+        "date_key": { "type": "string", "description": "YYYY-MM-DD" }
+      },
+      "required": ["userId", "nama_makanan", "emoji", "kategori", "meal_type", "kalori", "karbohidrat_g", "protein_g", "lemak_g", "serat_g", "timestamp", "date_key"]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile and target data.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "nama": { "type": "string" },
+        "usia": { "type": "number" },
+        "gender": { "type": "string" },
+        "berat_kg": { "type": "number" },
+        "tinggi_cm": { "type": "number" },
+        "tujuan": { "type": "string" },
+        "alergi": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "target_kalori": { "type": "number" },
+        "target_protein_g": { "type": "number" },
+        "target_karbo_g": { "type": "number" },
+        "target_lemak_g": { "type": "number" }
+      },
+      "required": ["userId", "nama", "usia", "gender", "berat_kg", "tinggi_cm", "tujuan", "alergi", "target_kalori", "target_protein_g", "target_karbo_g", "target_lemak_g"]
+    },
+    "NaraChat": {
+      "title": "NaraChat",
+      "description": "Chat log between user and Nara AI.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "model", "assistant"] },
+        "text": { "type": "string" },
+        "timestamp": { "type": "object" },
+        "date_key": { "type": "string" }
+      },
+      "required": ["userId", "role", "text", "timestamp", "date_key"]
+    }
+  },
+  "firestore": {
+    "/nara_chats/{chatId}": {
+      "schema": { "$ref": "#/entities/NaraChat" },
+      "description": "User chats with Nara"
+    },
+    "/food_logs/{logId}": {
+      "schema": { "$ref": "#/entities/FoodLog" },
+      "description": "User food logs."
+    },
+    "/user_profiles/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "User profiles."
+    }
+  }
+}

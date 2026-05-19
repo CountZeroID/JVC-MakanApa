@@ -1,0 +1,104 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #2D6A4F;
+  --color-primary-light: #52B788;
+  --color-accent: #F4845F;
+  --color-accent-light: #FFDDD2;
+  --color-bg-main: #FAFAF8;
+  --color-bg-card: #FFFFFF;
+  --color-text-primary: #1B1B1B;
+  --color-text-secondary: #6B6B6B;
+  --color-text-muted: #A8A8A8;
+  --color-success: #40916C;
+  --color-warning: #F4A261;
+  --color-error: #E63946;
+  --color-border: #E8E8E4;
+
+  --font-heading: 'Plus Jakarta Sans', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+}
+
+@layer base {
+  .dark {
+    --color-bg-main: #121212;
+    --color-bg-card: #1e1e1e;
+    --color-text-primary: #e8e8e8;
+    --color-text-secondary: #a8a8a8;
+    --color-text-muted: #6b6b6b;
+    --color-border: #333333;
+    --color-primary: #52B788;
+    --color-primary-light: #74D4A4;
+    --color-success: #6BCB93;
+    --color-warning: #F4A261;
+    --color-error: #FF6B6B;
+  }
+
+  /* Dark mode global overrides for hardcoded colors */
+  .dark input,
+  .dark textarea,
+  .dark select {
+    background-color: var(--color-bg-card) !important;
+    color: var(--color-text-primary) !important;
+    border-color: var(--color-border) !important;
+  }
+
+  .dark input::placeholder,
+  .dark textarea::placeholder {
+    color: var(--color-text-muted) !important;
+  }
+
+  /* Fix hardcoded white/black backgrounds in dark mode */
+  .dark .bg-white {
+    background-color: var(--color-bg-card) !important;
+  }
+
+  .dark .text-gray-800,
+  .dark .text-\\[\\#1B1B1B\\] {
+    color: var(--color-text-primary) !important;
+  }
+
+  .dark .border-gray-200 {
+    border-color: var(--color-border) !important;
+  }
+
+  /* Recharts / chart tooltip fix */
+  .dark .recharts-default-tooltip {
+    background-color: var(--color-bg-card) !important;
+    border-color: var(--color-border) !important;
+  }
+}
+
+html, body {
+  background-color: var(--color-bg-main);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
+
+.font-mono-numbers {
+  font-family: var(--font-mono);
+}
+
+/* Number input spinner: hidden by default, visible on hover */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: inner-spin-button;
+  appearance: auto;
+  opacity: 0;
+  height: 2em;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+input[type="number"]:hover::-webkit-inner-spin-button,
+input[type="number"]:hover::-webkit-outer-spin-button,
+input[type="number"]:focus::-webkit-inner-spin-button,
+input[type="number"]:focus::-webkit-outer-spin-button {
+  opacity: 1;
+}
