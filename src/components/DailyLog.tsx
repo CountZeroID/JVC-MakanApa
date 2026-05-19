@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trash2, Flame, AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Trash2, Flame, AlertTriangle, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { getLogsForDateRange, deleteFoodLog, FoodLog } from '../lib/firebase';
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday } from 'date-fns';
 import { id, enUS } from 'date-fns/locale';
@@ -19,6 +19,38 @@ export default function DailyLog({ targetKalori, onOpenNara }: { targetKalori: n
   const [allRangeLogs, setAllRangeLogs] = useState<FoodLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedLog, setSelectedLog] = useState<FoodLog | null>(null);
+
+  const handlePrevDate = () => {
+    setSelectedDate(prev => {
+      const d = new Date(prev);
+      if (viewMode === 'day') {
+        d.setDate(d.getDate() - 1);
+      } else if (viewMode === 'week') {
+        d.setDate(d.getDate() - 7);
+      } else {
+        d.setMonth(d.getMonth() - 1);
+      }
+      return d;
+    });
+  };
+
+  const handleNextDate = () => {
+    setSelectedDate(prev => {
+      const d = new Date(prev);
+      if (viewMode === 'day') {
+        d.setDate(d.getDate() + 1);
+      } else if (viewMode === 'week') {
+        d.setDate(d.getDate() + 7);
+      } else {
+        d.setMonth(d.getMonth() + 1);
+      }
+      return d;
+    });
+  };
+
+  const handleGoToToday = () => {
+    setSelectedDate(new Date());
+  };
 
   const startStr = viewMode === 'week' ? format(startOfWeek(selectedDate, { weekStartsOn: 1 }), 'yyyy-MM-dd') :
                    viewMode === 'month' ? format(startOfMonth(selectedDate), 'yyyy-MM-dd') :
@@ -82,9 +114,36 @@ export default function DailyLog({ targetKalori, onOpenNara }: { targetKalori: n
       <div className="flex flex-col gap-4 mb-2">
           <div className="flex items-center justify-between">
               <h2 className="text-2xl font-extrabold font-heading text-primary tracking-tight">{t.log_title}</h2>
-              <span className="text-[10px] font-bold text-text-muted bg-bg-card border border-border px-3 py-1.5 rounded-md uppercase tracking-widest">
-                {format(selectedDate, 'd MMM yyyy', { locale: dateLocale })}
+              {!isToday(selectedDate) && (
+                  <button 
+                      onClick={handleGoToToday}
+                      className="flex items-center gap-1.5 text-[10px] font-bold text-primary bg-primary/10 border border-primary/20 px-3 py-1.5 rounded-lg uppercase tracking-widest cursor-pointer active:scale-95 transition-all hover:bg-primary/20"
+                  >
+                      <Calendar size={12} />
+                      {t.log_hari_ini}
+                  </button>
+              )}
+          </div>
+
+          {/* Date Selector Navigation */}
+          <div className="flex items-center justify-between bg-bg-card border border-border px-3 py-2 rounded-xl">
+              <button 
+                  onClick={handlePrevDate}
+                  className="p-2 hover:bg-bg-main rounded-lg text-text-secondary hover:text-primary transition-colors cursor-pointer active:scale-95"
+              >
+                  <ChevronLeft size={20} />
+              </button>
+              <span className="text-sm font-bold text-text-primary text-center flex-1">
+                {viewMode === 'day' ? format(selectedDate, 'EEEE, d MMMM yyyy', { locale: dateLocale }) :
+                 viewMode === 'week' ? `${format(startOfWeek(selectedDate, { weekStartsOn: 1 }), 'd MMM', { locale: dateLocale })} - ${format(endOfWeek(selectedDate, { weekStartsOn: 1 }), 'd MMM yyyy', { locale: dateLocale })}` :
+                 format(selectedDate, 'MMMM yyyy', { locale: dateLocale })}
               </span>
+              <button 
+                  onClick={handleNextDate}
+                  className="p-2 hover:bg-bg-main rounded-lg text-text-secondary hover:text-primary transition-colors cursor-pointer active:scale-95"
+              >
+                  <ChevronRight size={20} />
+              </button>
           </div>
 
           <div className="flex bg-bg-card border border-border rounded-xl p-1">
@@ -92,7 +151,7 @@ export default function DailyLog({ targetKalori, onOpenNara }: { targetKalori: n
                   <button
                       key={mode}
                       onClick={() => setViewMode(mode)}
-                      className={`flex-1 py-2 text-xs font-bold rounded-lg transition-colors ${viewMode === mode ? 'bg-primary text-white shadow-sm' : 'text-text-muted hover:text-text-primary'}`}
+                      className={`flex-1 py-2 text-xs font-bold rounded-lg transition-colors cursor-pointer ${viewMode === mode ? 'bg-primary text-white shadow-sm' : 'text-text-muted hover:text-text-primary'}`}
                   >
                       {mode === 'day' ? t.log_hari_ini : mode === 'week' ? t.log_minggu : t.log_bulan}
                   </button>
