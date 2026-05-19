@@ -1,7 +1,3 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
-
 # 🥗 MakanApa - AI Nutrition Tracker
 
 **MakanApa** adalah aplikasi pelacak nutrisi harian cerdas yang ditenagai oleh **Google Gemini AI**. Cukup foto makananmu, dan biarkan AI mengenali kandungan gizi dan kalorinya secara instan!
