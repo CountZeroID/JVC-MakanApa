@@ -1,8 +1,9 @@
 # Stage 1: Build the Vite React App
-FROM node:18-alpine as build
+FROM node:20-alpine as build
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+# Hapus package-lock untuk mencegah bug native binding Tailwind di Alpine
+RUN rm -f package-lock.json && npm install
 COPY . .
 RUN npm run build
 
