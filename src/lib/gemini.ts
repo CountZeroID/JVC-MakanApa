@@ -143,7 +143,7 @@ export const analyzeFoodImage = async (base64Image: string, mimeType: string): P
     });
 
     const aiPromise = ai.models.generateContent({
-      model: "gemini-3.1-flash-lite",
+      model: "gemini-3.5-flash",
       contents: {
         parts: [
           {
@@ -231,7 +231,7 @@ ${isEn ? "You must respond in English only." : "Kamu harus menjawab dalam Bahasa
 
   try {
     const chatSession = ai.chats.create({
-      model: "gemini-3.1-flash-lite",
+      model: "gemini-3.5-flash",
       config: {
         systemInstruction: NARA_SYSTEM_PROMPT,
         temperature: 0.7,
@@ -250,7 +250,7 @@ ${isEn ? "You must respond in English only." : "Kamu harus menjawab dalam Bahasa
 export const preWarmGemini = async () => {
     try {
         await ai.models.generateContent({
-            model: "gemini-3.1-flash-lite",
+            model: "gemini-3.5-flash",
             contents: { parts: [{ text: "Ping" }] }
         });
     } catch (e) {
@@ -268,7 +268,7 @@ ${JSON.stringify(baseStrings)}`;
 
   try {
     const response = await ai.models.generateContent({
-        model: "gemini-3.1-flash-lite", // Using a fast model for UI translation
+        model: "gemini-3.5-flash", // Using a fast model for UI translation
         contents: prompt,
         config: {
           responseMimeType: "application/json",
