@@ -205,8 +205,8 @@ export default function App() {
   }
 
   return (
-    <div className="fixed inset-0 bg-bg-main flex justify-center">
-      <div className="w-full max-w-[480px] h-full overflow-hidden relative flex flex-col mx-auto">
+    <div className="fixed inset-0 bg-bg-main sm:bg-border flex justify-center sm:p-6 sm:items-center">
+      <div className="w-full max-w-[480px] h-full sm:h-[840px] sm:max-h-full overflow-hidden relative flex flex-col bg-bg-main sm:rounded-[40px] sm:shadow-2xl sm:border sm:border-border/60">
         {/* Toast Welcome */}
         <AnimatePresence>
           {showWelcome && (

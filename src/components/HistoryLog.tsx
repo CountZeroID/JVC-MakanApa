@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Calendar, Trash2 } from 'lucide-react';
 import { getLogsForDateRange, deleteFoodLog, FoodLog } from '../lib/firebase';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, isAfter, startOfDay } from 'date-fns';
 import { id, enUS } from 'date-fns/locale';
 import BottomSheet from './BottomSheet';
 import { useTranslation } from '../hooks/useTranslation';
@@ -135,11 +135,18 @@ export default function HistoryLog({ targetKalori }: { targetKalori: number }) {
                   const cals = logsByDate[dKey] || 0;
                   const isSel = isSameDay(day, selectedDate);
                   const isTdy = isToday(day);
+                  const isFuture = isAfter(day, startOfDay(new Date()));
+                  
                   return (
                       <button 
                           key={dKey}
                           onClick={() => setSelectedDate(day)}
-                          className={`aspect-square rounded-full flex items-center justify-center relative text-sm font-bold transition-all cursor-pointer ${isSel ? 'bg-primary text-white scale-110 shadow-md z-10' : isTdy ? 'bg-border text-text-primary' : 'hover:bg-bg-main text-text-primary'}`}
+                          disabled={isFuture}
+                          className={`aspect-square rounded-full flex items-center justify-center relative text-sm font-bold transition-all ${
+                              isFuture ? 'opacity-30 cursor-not-allowed text-text-muted' : 'cursor-pointer hover:bg-bg-main'
+                          } ${
+                              isSel ? 'bg-primary text-white scale-110 shadow-md z-10' : isTdy ? 'bg-border text-text-primary' : (!isFuture ? 'text-text-primary' : '')
+                          }`}
                       >
                           {format(day, 'd')}
                           {cals > 0 && <div className={`absolute bottom-0 w-1.5 h-1.5 rounded-full ${isSel ? 'bg-white' : getStatusColor(cals)}`} style={{ transform: 'translateY(50%)' }}></div>}
