@@ -105,6 +105,11 @@ export default function NaraChat() {
             });
         } catch (error) {
             console.error(error);
+            await saveNaraChat({
+                role: 'model',
+                text: t.nara_error,
+                date_key: dateKey
+            });
         } finally {
             setIsLoading(false);
         }
@@ -144,6 +149,11 @@ export default function NaraChat() {
             });
         } catch (error) {
             console.error(error);
+            await saveNaraChat({
+                role: 'model',
+                text: t.nara_error,
+                date_key: dateKey
+            });
         } finally {
             setIsLoading(false);
         }

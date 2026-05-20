@@ -507,10 +507,10 @@ export default function HomeScanner({ onSaveSuccess }: { onSaveSuccess: () => vo
           <div className="space-y-3 mb-4">
               <button 
                   onClick={() => cameraInputRef.current?.click()}
-                  className="w-full bg-[#FAFAF8] border border-border/60 p-4 rounded-[20px] flex items-center justify-between text-left hover:border-primary/40 focus:border-primary/40 active:bg-primary/5 transition-all group"
+                  className="w-full bg-bg-main border border-border/60 p-4 rounded-[20px] flex items-center justify-between text-left hover:border-primary/40 focus:border-primary/40 active:bg-primary/5 transition-all group"
               >
                   <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center text-primary group-hover:bg-primary/10 group-focus:bg-primary/10 transition-colors">
+                      <div className="w-12 h-12 bg-bg-card rounded-full shadow-sm flex items-center justify-center text-primary group-hover:bg-primary/10 group-focus:bg-primary/10 transition-colors">
                           <Camera size={24} />
                       </div>
                       <div>
@@ -522,10 +522,10 @@ export default function HomeScanner({ onSaveSuccess }: { onSaveSuccess: () => vo
 
               <button 
                   onClick={() => galleryInputRef.current?.click()}
-                  className="w-full bg-[#FAFAF8] border border-border/60 p-4 rounded-[20px] flex items-center justify-between text-left hover:border-primary/40 focus:border-primary/40 active:bg-primary/5 transition-all group"
+                  className="w-full bg-bg-main border border-border/60 p-4 rounded-[20px] flex items-center justify-between text-left hover:border-primary/40 focus:border-primary/40 active:bg-primary/5 transition-all group"
               >
                   <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center text-primary group-hover:bg-primary/10 group-focus:bg-primary/10 transition-colors">
+                      <div className="w-12 h-12 bg-bg-card rounded-full shadow-sm flex items-center justify-center text-primary group-hover:bg-primary/10 group-focus:bg-primary/10 transition-colors">
                           <ImageIcon size={24} />
                       </div>
                       <div>

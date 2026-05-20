@@ -425,7 +425,7 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
                             <Scale size={18} className="text-text-muted" /> {t.satuan_berat}
                         </div>
                         <button onClick={() => { setTempUnit(settings.unitSystem === 'imperial'); setShowEditUnit(true); }} className="flex items-center gap-2 text-xs font-bold text-text-secondary bg-bg-main px-3 py-1.5 rounded-lg border border-border">
-                            {settings.unitSystem === 'imperial' ? 'Imperial (Ounce, lb)' : 'Metric (Gram, kg)'} <ChevronRight size={14} />
+                            {settings.unitSystem === 'imperial' ? t.satuan_imperial : t.satuan_metric} <ChevronRight size={14} />
                         </button>
                     </div>
                     <div className="flex items-center justify-between p-4 border-b border-border/50">
@@ -713,11 +713,7 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
                     <div className="h-px bg-border w-full"></div>
 
                     <p className="text-sm font-medium leading-relaxed text-text-secondary text-center">
-                        MakanApa adalah aplikasi pelacak nutrisi berbasis AI yang 
-                        membantu kamu memahami kandungan gizi dari setiap makanan 
-                        yang kamu konsumsi. Cukup foto makananmu, dan AI kami akan 
-                        mengidentifikasi bahan-bahan serta menghitung nutrisinya 
-                        secara otomatis.
+                        {t.about_desc}
                     </p>
 
                     <div className="h-px bg-border w-full"></div>
@@ -726,29 +722,29 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
                          <div className="flex items-center gap-4">
                              <div className="text-2xl bg-bg-main w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border border-border shadow-sm">📷</div>
                              <div>
-                                 <p className="font-bold text-sm text-text-primary mb-0.5">Smart Food Scanner</p>
-                                 <p className="text-xs font-medium text-text-secondary">Deteksi otomatis semua jenis makanan</p>
+                                 <p className="font-bold text-sm text-text-primary mb-0.5">{t.about_f1_title}</p>
+                                 <p className="text-xs font-medium text-text-secondary">{t.about_f1_desc}</p>
                              </div>
                          </div>
                          <div className="flex items-center gap-4">
                              <div className="text-2xl bg-bg-main w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border border-border shadow-sm">✨</div>
                              <div>
-                                 <p className="font-bold text-sm text-text-primary mb-0.5">AI Companion Nara</p>
-                                 <p className="text-xs font-medium text-text-secondary">Teman gizi personal 24/7</p>
+                                 <p className="font-bold text-sm text-text-primary mb-0.5">{t.about_f2_title}</p>
+                                 <p className="text-xs font-medium text-text-secondary">{t.about_f2_desc}</p>
                              </div>
                          </div>
                          <div className="flex items-center gap-4">
                              <div className="text-2xl bg-bg-main w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border border-border shadow-sm">📊</div>
                              <div>
-                                 <p className="font-bold text-sm text-text-primary mb-0.5">Statistik Lengkap</p>
-                                 <p className="text-xs font-medium text-text-secondary">Pantau tren nutrisi harianmu</p>
+                                 <p className="font-bold text-sm text-text-primary mb-0.5">{t.about_f3_title}</p>
+                                 <p className="text-xs font-medium text-text-secondary">{t.about_f3_desc}</p>
                              </div>
                          </div>
                          <div className="flex items-center gap-4">
                              <div className="text-2xl bg-bg-main w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border border-border shadow-sm">🎯</div>
                              <div>
-                                 <p className="font-bold text-sm text-text-primary mb-0.5">Target Personal</p>
-                                 <p className="text-xs font-medium text-text-secondary">Disesuaikan dengan tujuan kesehatanmu</p>
+                                 <p className="font-bold text-sm text-text-primary mb-0.5">{t.about_f4_title}</p>
+                                 <p className="text-xs font-medium text-text-secondary">{t.about_f4_desc}</p>
                              </div>
                          </div>
                     </div>
@@ -816,8 +812,8 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
                 <div className="space-y-4 px-1 pb-4">
                     <div className="grid grid-cols-1 gap-2">
                         {[
-                            { id: 'metric', label: '⚖️ Metric (Gram, kg)', value: false },
-                            { id: 'imperial', label: '⚖️ Imperial (Ounce, lb)', value: true }
+                            { id: 'metric', label: `⚖️ ${t.satuan_metric}`, value: false },
+                            { id: 'imperial', label: `⚖️ ${t.satuan_imperial}`, value: true }
                         ].map(opt => (
                             <button
                                 key={opt.id}
@@ -857,24 +853,24 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
             {/* Privacy Policy BottomSheet */}
             <BottomSheet isOpen={showPrivacyPolicy} onClose={() => setShowPrivacyPolicy(false)} title={t.kebijakan_privasi}>
                 <div className="px-2 pb-6 space-y-4 text-sm text-text-secondary leading-relaxed">
-                    <p className="font-bold text-text-primary">1. Pengumpulan Data</p>
-                    <p>MakanApa mengumpulkan data berupa email, profil nutrisi (umur, berat badan, tinggi badan), preferensi alergi, serta foto makanan yang diunggah untuk keperluan analisis nutrisi AI.</p>
-                    <p className="font-bold text-text-primary mt-4">2. Penggunaan Data</p>
-                    <p>Data foto makanan akan diproses sementara oleh Google Gemini AI untuk mengembalikan estimasi kalori dan makronutrien. MakanApa tidak menjual data pengguna kepada pihak ketiga.</p>
-                    <p className="font-bold text-text-primary mt-4">3. Keamanan</p>
-                    <p>Data tersimpan dengan aman menggunakan standar keamanan Google Firebase Firestore.</p>
-                    <button onClick={() => setShowPrivacyPolicy(false)} className="w-full bg-primary/10 text-primary font-bold py-3 rounded-xl mt-4 active:scale-95 transition-transform">Mengerti</button>
+                    <p className="font-bold text-text-primary">{t.privacy_p1_title}</p>
+                    <p>{t.privacy_p1_desc}</p>
+                    <p className="font-bold text-text-primary mt-4">{t.privacy_p2_title}</p>
+                    <p>{t.privacy_p2_desc}</p>
+                    <p className="font-bold text-text-primary mt-4">{t.privacy_p3_title}</p>
+                    <p>{t.privacy_p3_desc}</p>
+                    <button onClick={() => setShowPrivacyPolicy(false)} className="w-full bg-primary/10 text-primary font-bold py-3 rounded-xl mt-4 active:scale-95 transition-transform">{t.privacy_btn}</button>
                 </div>
             </BottomSheet>
 
             {/* Terms & Conditions BottomSheet */}
             <BottomSheet isOpen={showTerms} onClose={() => setShowTerms(false)} title={t.syarat_ketentuan}>
                 <div className="px-2 pb-6 space-y-4 text-sm text-text-secondary leading-relaxed max-h-[60vh] overflow-y-auto">
-                    <p className="font-bold text-text-primary">1. Layanan Informasi Gizi</p>
-                    <p>MakanApa menggunakan teknologi AI (Google Gemini) untuk mengestimasi kalori dan nutrisi dari foto. Estimasi ini <b>bukanlah diagnosis medis yang akurat 100%</b> dan tidak boleh digunakan sebagai acuan pengobatan klinis.</p>
-                    <p className="font-bold text-text-primary mt-4">2. Pengguna Layanan</p>
-                    <p>Dengan menggunakan aplikasi ini, pengguna bertanggung jawab atas input kalori dan segala risiko kesehatan yang mungkin timbul akibat alergi atau pantangan makan yang tidak terdeteksi oleh sistem.</p>
-                    <button onClick={() => setShowTerms(false)} className="w-full bg-primary/10 text-primary font-bold py-3 rounded-xl mt-4 active:scale-95 transition-transform">Mengerti</button>
+                    <p className="font-bold text-text-primary">{t.terms_p1_title}</p>
+                    <p>{t.terms_p1_desc}</p>
+                    <p className="font-bold text-text-primary mt-4">{t.terms_p2_title}</p>
+                    <p>{t.terms_p2_desc}</p>
+                    <button onClick={() => setShowTerms(false)} className="w-full bg-primary/10 text-primary font-bold py-3 rounded-xl mt-4 active:scale-95 transition-transform">{t.terms_btn}</button>
                 </div>
             </BottomSheet>
 
@@ -882,18 +878,18 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
             <BottomSheet isOpen={showHelp} onClose={() => setShowHelp(false)} title={t.bantuan}>
                 <div className="px-2 pb-6 space-y-5 text-sm text-text-secondary leading-relaxed">
                     <div>
-                        <p className="font-bold text-text-primary mb-1">Q: Bagaimana cara scan makanan?</p>
-                        <p>A: Buka tab "Scan", izinkan akses kamera, lalu arahkan kamera ke makananmu hingga jelas. Tekan tombol ambil foto dan biarkan AI kami menganalisisnya.</p>
+                        <p className="font-bold text-text-primary mb-1">{t.help_q1}</p>
+                        <p>{t.help_a1}</p>
                     </div>
                     <div>
-                        <p className="font-bold text-text-primary mb-1">Q: Mengapa hasil estimasi nutrisi berbeda?</p>
-                        <p>A: AI kami melakukan estimasi berdasarkan porsi dan bahan yang terlihat. Hasil ini adalah perkiraan (estimasi) terdekat dan bisa sedikit berbeda dengan fakta nutrisi pabrik.</p>
+                        <p className="font-bold text-text-primary mb-1">{t.help_q2}</p>
+                        <p>{t.help_a2}</p>
                     </div>
                     <div>
-                        <p className="font-bold text-text-primary mb-1">Q: Bagaimana jika saya salah memasukkan log?</p>
-                        <p>A: Kamu bisa pergi ke tab "Daily" (Harian), cari makanan yang ingin dihapus, lalu klik ikon sampah 🗑️ di pojok kanan kartu makanan tersebut.</p>
+                        <p className="font-bold text-text-primary mb-1">{t.help_q3}</p>
+                        <p>{t.help_a3}</p>
                     </div>
-                    <button onClick={() => setShowHelp(false)} className="w-full bg-primary/10 text-primary font-bold py-3 rounded-xl mt-2 active:scale-95 transition-transform">Tutup Bantuan</button>
+                    <button onClick={() => setShowHelp(false)} className="w-full bg-primary/10 text-primary font-bold py-3 rounded-xl mt-2 active:scale-95 transition-transform">{t.help_btn}</button>
                 </div>
             </BottomSheet>
 

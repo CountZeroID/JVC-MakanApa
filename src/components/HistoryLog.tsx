@@ -1,120 +1,94 @@
 import { useState, useEffect } from 'react';
-import { Trash2, Flame, AlertTriangle, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, Trash2 } from 'lucide-react';
 import { getLogsForDateRange, deleteFoodLog, FoodLog } from '../lib/firebase';
-import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday } from 'date-fns';
 import { id, enUS } from 'date-fns/locale';
 import BottomSheet from './BottomSheet';
 import { useTranslation } from '../hooks/useTranslation';
 import { useSettings } from '../contexts/SettingsContext';
 import { MacroBar, VitaminBar } from './shared/NutritionBars';
 
-type ViewMode = 'day' | 'week' | 'month';
-
-export default function DailyLog({ targetKalori, onOpenNara }: { targetKalori: number, onOpenNara?: () => void }) {
+export default function HistoryLog({ targetKalori }: { targetKalori: number }) {
   const { settings } = useSettings();
   const dateLocale = settings.language === 'en' ? enUS : id;
   const t = useTranslation();
-  const [viewMode, setViewMode] = useState<ViewMode>('day');
+  
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [allRangeLogs, setAllRangeLogs] = useState<FoodLog[]>([]);
+  // The month currently being viewed in the calendar
+  const [viewMonth, setViewMonth] = useState<Date>(startOfMonth(new Date()));
+  const [allLogs, setAllLogs] = useState<FoodLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedLog, setSelectedLog] = useState<FoodLog | null>(null);
 
-  const handlePrevDate = () => {
-    setSelectedDate(prev => {
-      const d = new Date(prev);
-      if (viewMode === 'day') {
-        d.setDate(d.getDate() - 1);
-      } else if (viewMode === 'week') {
-        d.setDate(d.getDate() - 7);
-      } else {
-        d.setMonth(d.getMonth() - 1);
-      }
-      return d;
-    });
-  };
-
-  const handleNextDate = () => {
-    setSelectedDate(prev => {
-      const d = new Date(prev);
-      if (viewMode === 'day') {
-        d.setDate(d.getDate() + 1);
-      } else if (viewMode === 'week') {
-        d.setDate(d.getDate() + 7);
-      } else {
-        d.setMonth(d.getMonth() + 1);
-      }
-      return d;
-    });
-  };
-
-  const handleGoToToday = () => {
-    setSelectedDate(new Date());
-  };
-
-  const startStr = viewMode === 'week' ? format(startOfWeek(selectedDate, { weekStartsOn: 1 }), 'yyyy-MM-dd') :
-                   viewMode === 'month' ? format(startOfMonth(selectedDate), 'yyyy-MM-dd') :
-                   format(selectedDate, 'yyyy-MM-dd');
-
-  const endStr = viewMode === 'week' ? format(endOfWeek(selectedDate, { weekStartsOn: 1 }), 'yyyy-MM-dd') :
-                 viewMode === 'month' ? format(endOfMonth(selectedDate), 'yyyy-MM-dd') :
-                 format(selectedDate, 'yyyy-MM-dd');
+  const startStr = format(startOfMonth(viewMonth), 'yyyy-MM-dd');
+  const endStr = format(endOfMonth(viewMonth), 'yyyy-MM-dd');
 
   useEffect(() => {
     const fetchLogs = async () => {
       setLoading(true);
       const data = await getLogsForDateRange(startStr, endStr);
-      setAllRangeLogs(data);
+      setAllLogs(data);
       setLoading(false);
     };
     fetchLogs();
-  }, [viewMode, startStr, endStr]);
+  }, [startStr, endStr]);
+
+  const handlePrevMonth = () => {
+    setViewMonth(prev => {
+      const d = new Date(prev);
+      d.setMonth(d.getMonth() - 1);
+      return d;
+    });
+  };
+
+  const handleNextMonth = () => {
+    setViewMonth(prev => {
+      const d = new Date(prev);
+      d.setMonth(d.getMonth() + 1);
+      return d;
+    });
+  };
+
+  const handleGoToToday = () => {
+    const today = new Date();
+    setViewMonth(startOfMonth(today));
+    setSelectedDate(today);
+  };
 
   const handleDelete = async (logId?: string) => {
     if (!logId) return;
     if (confirm("Hapus catatan ini?")) {
       await deleteFoodLog(logId);
-      setAllRangeLogs(allRangeLogs.filter(l => l.id !== logId));
+      setAllLogs(allLogs.filter(l => l.id !== logId));
       if (selectedLog?.id === logId) {
           setSelectedLog(null);
       }
     }
   };
 
-  // Filter logs exactly for selectedDate
-  const logs = allRangeLogs.filter(l => l.date_key === format(selectedDate, 'yyyy-MM-dd'));
+  const logsForSelectedDate = allLogs.filter(l => l.date_key === format(selectedDate, 'yyyy-MM-dd'));
+  const groupLogs = (type: string) => logsForSelectedDate.filter(l => l.meal_type === type);
 
-  const totals = logs.reduce((acc, log) => {
-    acc.kalori += log.kalori;
-    acc.karbo += log.karbohidrat_g;
-    acc.protein += log.protein_g;
-    acc.lemak += log.lemak_g;
-    return acc;
-  }, { kalori: 0, karbo: 0, protein: 0, lemak: 0 });
-
-  const progressPerc = Math.min(100, (totals.kalori / targetKalori) * 100);
-  const groupLogs = (type: string) => logs.filter(l => l.meal_type === type);
-
-  // Group all logs by date for week/month view info
-  const logsByDate = allRangeLogs.reduce((acc, log) => {
+  // Group all logs by date for calendar dots
+  const logsByDate = allLogs.reduce((acc, log) => {
       acc[log.date_key] = (acc[log.date_key] || 0) + log.kalori;
       return acc;
   }, {} as Record<string, number>);
 
   const getStatusColor = (calories: number) => {
-      if (calories === 0) return 'bg-border'; // no data
+      if (calories === 0) return 'bg-border';
       const ratio = calories / targetKalori;
-      if (ratio > 1.1) return 'bg-error'; // over
-      if (ratio >= 0.9) return 'bg-success'; // close/on target
-      return 'bg-warning'; // under
+      if (ratio > 1.1) return 'bg-error';
+      if (ratio >= 0.9) return 'bg-success';
+      return 'bg-warning';
   };
 
   return (
-    <div className="p-5 relative min-h-full pb-6 space-y-6">
+    <div className="p-5 relative min-h-full pb-6 space-y-6 animate-in fade-in">
       <div className="flex flex-col gap-4 mb-2">
           <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-extrabold font-heading text-primary tracking-tight">{t.log_title}</h2>
-              {!isToday(selectedDate) && (
+              <h2 className="text-2xl font-extrabold font-heading text-primary tracking-tight">History</h2>
+              {!isSameDay(selectedDate, new Date()) && (
                   <button 
                       onClick={handleGoToToday}
                       className="flex items-center gap-1.5 text-[10px] font-bold text-primary bg-primary/10 border border-primary/20 px-3 py-1.5 rounded-lg uppercase tracking-widest cursor-pointer active:scale-95 transition-all hover:bg-primary/20"
@@ -125,146 +99,74 @@ export default function DailyLog({ targetKalori, onOpenNara }: { targetKalori: n
               )}
           </div>
 
-          {/* Date Range Display */}
-          <div className="flex items-center justify-center bg-bg-card border border-border px-3 py-2 rounded-xl">
-              <span className="text-sm font-bold text-text-primary text-center">
-                {viewMode === 'day' ? format(selectedDate, 'EEEE, d MMMM yyyy', { locale: dateLocale }) :
-                 viewMode === 'week' ? `${format(startOfWeek(selectedDate, { weekStartsOn: 1 }), 'd MMM', { locale: dateLocale })} - ${format(endOfWeek(selectedDate, { weekStartsOn: 1 }), 'd MMM yyyy', { locale: dateLocale })}` :
-                 format(selectedDate, 'MMMM yyyy', { locale: dateLocale })}
+          {/* Month Navigator */}
+          <div className="flex items-center justify-between bg-bg-card border border-border px-3 py-2 rounded-xl">
+              <button 
+                  onClick={handlePrevMonth}
+                  className="p-2 hover:bg-bg-main rounded-lg text-text-secondary hover:text-primary transition-colors cursor-pointer active:scale-95"
+              >
+                  <ChevronLeft size={20} />
+              </button>
+              <span className="text-sm font-bold text-text-primary text-center flex-1 capitalize">
+                  {format(viewMonth, 'MMMM yyyy', { locale: dateLocale })}
               </span>
-          </div>
-
-          <div className="flex bg-bg-card border border-border rounded-xl p-1">
-              {(['day', 'week', 'month'] as ViewMode[]).map(mode => (
-                  <button
-                      key={mode}
-                      onClick={() => setViewMode(mode)}
-                      className={`flex-1 py-2 text-xs font-bold rounded-lg transition-colors cursor-pointer ${viewMode === mode ? 'bg-primary text-white shadow-sm' : 'text-text-muted hover:text-text-primary'}`}
-                  >
-                      {mode === 'day' ? t.log_hari_ini : mode === 'week' ? t.log_minggu : t.log_bulan}
-                  </button>
-              ))}
+              <button 
+                  onClick={handleNextMonth}
+                  className="p-2 hover:bg-bg-main rounded-lg text-text-secondary hover:text-primary transition-colors cursor-pointer active:scale-95"
+              >
+                  <ChevronRight size={20} />
+              </button>
           </div>
       </div>
 
-      {/* Week/Month Overview Component */}
-      {viewMode === 'week' && (
-          <div className="grid grid-cols-7 gap-2">
-              {eachDayOfInterval({ start: new Date(startStr), end: new Date(endStr) }).map(day => {
+      {/* Calendar View */}
+      <div className="bg-bg-card border border-border rounded-[24px] p-5 shadow-[0_2px_16px_rgba(0,0,0,0.06)] max-w-[480px] mx-auto">
+          <div className="grid grid-cols-7 gap-y-3 gap-x-1 mb-2">
+              {[t.hari_sen, t.hari_sel, t.hari_rab, t.hari_kam, t.hari_jum, t.hari_sab, t.hari_min].map(d => (
+                  <div key={d} className="text-center text-[10px] font-bold text-text-muted uppercase tracking-widest">{d}</div>
+              ))}
+              {/* Empty cells before month start */}
+              {Array.from({ length: (viewMonth.getDay() + 6) % 7 }).map((_, i) => (
+                  <div key={`empty-${i}`} />
+              ))}
+              {/* Days */}
+              {eachDayOfInterval({ start: viewMonth, end: endOfMonth(viewMonth) }).map(day => {
                   const dKey = format(day, 'yyyy-MM-dd');
                   const cals = logsByDate[dKey] || 0;
                   const isSel = isSameDay(day, selectedDate);
-                  // Check if day is strictly after today, setting today to midnight for fair comparison
-                  const today = new Date();
-                  today.setHours(0,0,0,0);
-                  const isFuture = day > today;
+                  const isTdy = isToday(day);
                   return (
                       <button 
                           key={dKey}
-                          onClick={() => { if (!isFuture) setSelectedDate(day) }}
-                          disabled={isFuture}
-                          className={`p-2 sm:p-3 rounded-[16px] border flex flex-col items-center justify-center gap-1.5 sm:gap-2 transition-all ${isFuture ? 'opacity-30 cursor-not-allowed bg-bg-main' : isSel ? 'border-primary bg-primary/5 ring-1 ring-primary cursor-pointer' : 'border-border bg-bg-card cursor-pointer hover:border-primary/50'}`}
+                          onClick={() => setSelectedDate(day)}
+                          className={`aspect-square rounded-full flex items-center justify-center relative text-sm font-bold transition-all cursor-pointer ${isSel ? 'bg-primary text-white scale-110 shadow-md z-10' : isTdy ? 'bg-border text-text-primary' : 'hover:bg-bg-main text-text-primary'}`}
                       >
-                          <span className={`text-[9px] sm:text-[10px] font-bold uppercase ${isSel ? 'text-primary' : 'text-text-muted'}`}>{format(day, 'EEE', { locale: dateLocale })}</span>
-                          <span className={`text-base sm:text-lg font-black font-heading ${isSel ? 'text-primary' : 'text-text-primary'}`}>{format(day, 'd')}</span>
-                          {!isFuture && <div className={`w-2 h-2 rounded-full ${getStatusColor(cals)}`}></div>}
+                          {format(day, 'd')}
+                          {cals > 0 && <div className={`absolute bottom-0 w-1.5 h-1.5 rounded-full ${isSel ? 'bg-white' : getStatusColor(cals)}`} style={{ transform: 'translateY(50%)' }}></div>}
                       </button>
                   );
               })}
           </div>
-      )}
+      </div>
 
-      {viewMode === 'month' && (
-          <div className="bg-bg-card border border-border rounded-[24px] p-5 shadow-[0_2px_16px_rgba(0,0,0,0.06)] max-w-[480px] mx-auto">
-              <div className="grid grid-cols-7 gap-y-3 gap-x-1 mb-2">
-                  {[t.hari_sen, t.hari_sel, t.hari_rab, t.hari_kam, t.hari_jum, t.hari_sab, t.hari_min].map(d => (
-                      <div key={d} className="text-center text-[10px] font-bold text-text-muted uppercase tracking-widest">{d}</div>
-                  ))}
-                  {/* Empty cells before month start */}
-                  {Array.from({ length: (new Date(startStr).getDay() + 6) % 7 }).map((_, i) => (
-                      <div key={`empty-${i}`} />
-                  ))}
-                  {/* Days */}
-                  {eachDayOfInterval({ start: new Date(startStr), end: new Date(endStr) }).map(day => {
-                      const dKey = format(day, 'yyyy-MM-dd');
-                      const cals = logsByDate[dKey] || 0;
-                      const isSel = isSameDay(day, selectedDate);
-                      const isTdy = isToday(day);
-                      const today = new Date();
-                      today.setHours(0,0,0,0);
-                      const isFuture = day > today;
-                      return (
-                          <button 
-                              key={dKey}
-                              onClick={() => { if (!isFuture) setSelectedDate(day) }}
-                              disabled={isFuture}
-                              className={`aspect-square rounded-full flex items-center justify-center relative text-sm font-bold transition-all ${isFuture ? 'opacity-30 cursor-not-allowed text-text-muted' : isSel ? 'bg-primary text-white scale-110 shadow-md z-10 cursor-pointer' : isTdy ? 'bg-border text-text-primary cursor-pointer' : 'hover:bg-bg-main text-text-primary cursor-pointer'}`}
-                          >
-                              {format(day, 'd')}
-                              {!isFuture && <div className={`absolute bottom-0 w-1.5 h-1.5 rounded-full ${isSel ? 'bg-white' : getStatusColor(cals)}`} style={{ transform: 'translateY(50%)' }}></div>}
-                          </button>
-                      );
-                  })}
-              </div>
-          </div>
-      )}
-
-      {/* Summary Card */}
-
-      <div className="bg-bg-card border border-border shadow-[0_2px_16px_rgba(0,0,0,0.06)] rounded-[24px] p-6">
-          <div className="flex items-center gap-6 mb-5">
-              <div className="relative w-24 h-24 shrink-0 flex items-center justify-center">
-                  <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                      <path
-                        className="text-border"
-                        strokeWidth="4"
-                        stroke="currentColor"
-                        fill="none"
-                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                      />
-                      <path
-                        className="text-primary transition-all duration-1000 ease-out"
-                        strokeWidth="4"
-                        strokeDasharray={`${progressPerc}, 100`}
-                        strokeLinecap="round"
-                        stroke="currentColor"
-                        fill="none"
-                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                      />
-                  </svg>
-                  <div className="absolute text-center">
-                      <div className="font-black font-mono text-2xl text-primary leading-none tracking-tight">{totals.kalori}</div>
-                      <div className="text-[10px] text-text-muted mt-0.5 uppercase tracking-widest font-bold">/{targetKalori}</div>
-                  </div>
-              </div>
-              
-              <div className="flex-1 grid grid-cols-3 gap-2">
-                  <MacroStat label={t.label_karbo} value={totals.karbo} color="text-warning" />
-                  <MacroStat label={t.label_protein} value={totals.protein} color="text-success" />
-                  <MacroStat label={t.label_lemak} value={totals.lemak} color="text-error" />
-              </div>
-          </div>
+      <div className="flex items-center justify-between mt-8 mb-2">
+          <h3 className="font-bold text-lg text-text-primary tracking-tight">
+              {format(selectedDate, 'd MMMM yyyy', { locale: dateLocale })}
+          </h3>
+          <span className="text-sm font-bold text-primary bg-primary/10 px-3 py-1 rounded-lg">
+              {logsForSelectedDate.reduce((acc, log) => acc + log.kalori, 0)} kcal
+          </span>
       </div>
 
       {loading ? (
           <div className="flex justify-center p-8">
-              <div className="animate-spin text-primary"><Flame size={32} /></div>
+              <div className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
           </div>
-      ) : logs.length === 0 ? (
-          <div className="text-center py-12 px-6 flex flex-col items-center">
-              <div className="w-16 h-16 rounded-full overflow-hidden shrink-0 flex items-center justify-center bg-gradient-to-br from-[#7B61FF] to-[#A28DF6] shadow-[0_4px_12px_rgba(123,97,255,0.3)] mb-4">
-                  <span className="text-3xl pt-1">✨</span>
-              </div>
-              <div className="bg-[#EDE9FF] text-[#2A2359] p-4 rounded-[20px] rounded-tl-[4px] text-sm font-medium leading-relaxed mb-6 relative">
-                  "{t.belum_ada_log}. {t.belum_ada_sub} ✨"
-                  <div className="absolute -top-2 -left-2 w-4 h-4 bg-[#EDE9FF] rotate-45 hidden"></div>
-              </div>
-              <button 
-                  onClick={onOpenNara}
-                  className="bg-[#7B61FF] text-white px-6 py-3 rounded-full font-bold text-sm tracking-wide shadow-[0_4px_12px_rgba(123,97,255,0.3)] transition-transform hover:scale-105 active:scale-95"
-              >
-                  {t.nav_nara}
-              </button>
+      ) : logsForSelectedDate.length === 0 ? (
+          <div className="text-center py-8 px-6 bg-bg-card rounded-[24px] border border-border border-dashed flex flex-col items-center">
+              <span className="text-4xl mb-3 opacity-50">🍃</span>
+              <p className="text-sm font-bold text-text-secondary">Belum ada makanan</p>
+              <p className="text-xs text-text-muted mt-1">Tidak ada catatan pada hari ini.</p>
           </div>
       ) : (
           <div className="space-y-6">
@@ -415,15 +317,6 @@ export default function DailyLog({ targetKalori, onOpenNara }: { targetKalori: n
       </BottomSheet>
     </div>
   );
-}
-
-function MacroStat({ label, value, color }: { label: string, value: number, color: string }) {
-    return (
-        <div className="text-center bg-bg-main rounded-xl py-2.5 border border-border/50">
-            <div className={`text-lg font-black font-mono tracking-tight leading-none ${color}`}>{Math.round(value)}g</div>
-            <div className="text-[9px] text-text-secondary font-bold uppercase tracking-widest mt-1.5">{label}</div>
-        </div>
-    );
 }
 
 function MealSection({ title, logs, onDelete, onClickLog }: { title: string, logs: FoodLog[], onDelete: (id?: string) => void, onClickLog: (log: FoodLog) => void }) {

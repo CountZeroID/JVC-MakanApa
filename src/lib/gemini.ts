@@ -243,7 +243,7 @@ ${isEn ? "You must respond in English only." : "Kamu harus menjawab dalam Bahasa
     return result.text;
   } catch (error) {
     console.error("Gemini Chat Error:", error);
-    return "Maaf, Nara lagi sedikit gangguan teknis nih. Coba lagi bentar ya! 🥺";
+    throw error;
   }
 };
 

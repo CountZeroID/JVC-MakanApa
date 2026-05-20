@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Flame } from 'lucide-react';
 import HomeScanner from './components/HomeScanner';
 import DailyLog from './components/DailyLog';
+import HistoryLog from './components/HistoryLog';
 import Statistics from './components/Statistics';
 import Profile from './components/Profile';
 import NaraChat from './components/NaraChat';
@@ -20,7 +21,7 @@ type AppState = 'loading' | 'login' | 'onboarding' | 'main';
 
 export default function App() {
   const [appState, setAppState] = useState<AppState>('loading');
-  const [activeTab, setActiveTab] = useState<'scan' | 'log' | 'nara' | 'stats' | 'profile'>('scan');
+  const [activeTab, setActiveTab] = useState<'scan' | 'log' | 'history' | 'nara' | 'stats' | 'profile'>('scan');
   const t = useTranslation();
   
   const [targetKalori, setTargetKalori] = useState(2000);
@@ -204,8 +205,8 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-bg-main">
-      <div className="w-full bg-bg-main h-[100dvh] overflow-hidden relative flex flex-col mx-auto">
+    <div className="fixed inset-0 bg-bg-main flex justify-center">
+      <div className="w-full max-w-[480px] h-full overflow-hidden relative flex flex-col mx-auto">
         {/* Toast Welcome */}
         <AnimatePresence>
           {showWelcome && (
@@ -246,6 +247,7 @@ export default function App() {
         )}>
           {activeTab === 'scan' && <HomeScanner onSaveSuccess={() => { setActiveTab('log'); }} />}
           {activeTab === 'log' && <DailyLog targetKalori={targetKalori} onOpenNara={handleOpenNara} />}
+          {activeTab === 'history' && <HistoryLog targetKalori={targetKalori} />}
           {activeTab === 'nara' && <NaraChat />}
           {activeTab === 'stats' && <Statistics targetKalori={targetKalori} />}
           {activeTab === 'profile' && <Profile onTargetUpdated={setTargetKalori} onOpenNara={() => setActiveTab('nara')} />}
@@ -271,6 +273,14 @@ export default function App() {
             label={t.nav_harian} 
             isActive={activeTab === 'log'} 
             onClick={() => setActiveTab('log')} 
+          />
+          <NavItem 
+            icon={
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            } 
+            label={t.nav_history} 
+            isActive={activeTab === 'history'} 
+            onClick={() => setActiveTab('history')} 
           />
           <NavItem 
             icon={
