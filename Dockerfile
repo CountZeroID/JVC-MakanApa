@@ -5,9 +5,6 @@ COPY package*.json ./
 # Hapus package-lock untuk mencegah bug native binding Tailwind di Alpine
 RUN rm -f package-lock.json && npm install
 COPY . .
-# API key harus tersedia saat build karena Vite embed nilainya ke bundle
-ARG GEMINI_API_KEY
-ENV GEMINI_API_KEY=$GEMINI_API_KEY
 RUN npm run build
 
 # Stage 2: Serve using NGINX
