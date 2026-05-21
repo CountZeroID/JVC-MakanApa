@@ -234,7 +234,7 @@ export default function App() {
                <span className="text-primary font-bold text-[11px] tracking-wide">{totalCalsToday}/{targetKalori} kcal</span>
             </div>
           </div>
-          <div className="flex items-center gap-1.5 bg-[#FFF4E5] px-3 py-1.5 rounded-full border border-[#FFE0A3]">
+          <div className="flex items-center gap-1.5 bg-[#FFF4E5] dark:bg-accent/10 px-3 py-1.5 rounded-full border border-[#FFE0A3] dark:border-accent/20">
             <Flame size={14} className="text-accent" />
             <span className="text-accent font-bold text-xs tracking-tight">{streak} {t.hari_streak}</span>
           </div>

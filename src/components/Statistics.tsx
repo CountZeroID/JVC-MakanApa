@@ -361,7 +361,7 @@ Makanan favorit: ${topFoods.map(f => f.name).join(', ')}
                 <h3 className="font-bold text-lg text-text-primary tracking-tight">{t.streak_title}</h3>
                 
                 <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-gradient-to-br from-[#FFF0E5] to-[#FFECD9] p-5 rounded-[24px] border border-[#FFD8B5] relative overflow-hidden group">
+                    <div className="bg-gradient-to-br from-[#FFF0E5] to-[#FFECD9] dark:from-[#EA580C]/20 dark:to-[#EA580C]/10 p-5 rounded-[24px] border border-[#FFD8B5] dark:border-[#EA580C]/30 relative overflow-hidden group">
                         <div className="relative z-10">
                             <p className="text-[10px] text-[#D97706] font-bold uppercase tracking-widest mb-1">{t.streak_terkini}</p>
                             <div className="flex items-baseline gap-1">
@@ -442,7 +442,7 @@ Makanan favorit: ${topFoods.map(f => f.name).join(', ')}
                     </button>
                 </div>
                 
-                <div className="bg-gradient-to-br from-[#F5F3FF] to-[#EDE9FF] border border-primary/20 p-5 rounded-[24px] shadow-sm relative overflow-hidden">
+                <div className="bg-gradient-to-br from-[#F5F3FF] to-[#EDE9FF] dark:from-primary/20 dark:to-primary/10 border border-primary/20 p-5 rounded-[24px] shadow-sm relative overflow-hidden">
                     <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/10 rounded-full blur-2xl"></div>
                     <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-primary/5 rounded-full blur-2xl"></div>
                     
@@ -455,9 +455,9 @@ Makanan favorit: ${topFoods.map(f => f.name).join(', ')}
                             </div>
                         ) : (
                             insights.map((insight, idx) => (
-                                <div key={idx} className="flex items-start gap-4 bg-white/60 p-4 rounded-[20px] backdrop-blur-md">
+                                <div key={idx} className="flex items-start gap-4 bg-white/60 dark:bg-black/20 p-4 rounded-[20px] backdrop-blur-md">
                                     <span className="text-2xl leading-none">💡</span>
-                                    <p className="text-sm font-medium text-[#2A2359] leading-relaxed">{insight}</p>
+                                    <p className="text-sm font-medium text-text-primary leading-relaxed">{insight}</p>
                                 </div>
                             ))
                         )}

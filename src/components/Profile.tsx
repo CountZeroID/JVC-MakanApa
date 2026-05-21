@@ -231,49 +231,58 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
     const handleSaveEditProfile = async () => {
         if (!profile) return;
         setLoading(true);
-        const newUsia = Number(editProfileData.usia);
-        const newBerat = Number(editProfileData.berat_kg);
-        const newTinggi = Number(editProfileData.tinggi_cm);
-        const newTujuan = editProfileData.tujuan as any;
+        try {
+            const newUsia = Number(editProfileData.usia);
+            const newBerat = Number(editProfileData.berat_kg);
+            const newTinggi = Number(editProfileData.tinggi_cm);
+            const newTujuan = editProfileData.tujuan as any;
 
-        let bmr = (10 * newBerat) + (6.25 * newTinggi) - (5 * newUsia);
-        bmr = profile.gender === 'laki-laki' || profile.gender === 'pria' ? bmr + 5 : bmr - 161;
-        const maintenance = bmr * 1.2;
-        let newTarget = maintenance;
-        if (newTujuan === 'diet') newTarget -= 500;
-        else if (newTujuan === 'bulking') newTarget += 500;
-        newTarget = Math.max(1200, Math.round(newTarget));
+            let bmr = (10 * newBerat) + (6.25 * newTinggi) - (5 * newUsia);
+            bmr = profile.gender === 'laki-laki' || profile.gender === 'pria' ? bmr + 5 : bmr - 161;
+            const maintenance = bmr * 1.2;
+            let newTarget = maintenance;
+            if (newTujuan === 'diet') newTarget -= 500;
+            else if (newTujuan === 'bulking') newTarget += 500;
+            newTarget = Math.max(1200, Math.round(newTarget));
 
-        let newFotoUrl = editProfileData.foto_profil;
-        if (newFotoUrl.startsWith('data:image/')) {
-            const uploadedUrl = await uploadProfileImage(newFotoUrl);
-            if (uploadedUrl) {
-                newFotoUrl = uploadedUrl;
+            let newFotoUrl = editProfileData.foto_profil;
+            if (newFotoUrl && newFotoUrl.startsWith('data:image/')) {
+                const uploadedUrl = await uploadProfileImage(newFotoUrl);
+                if (uploadedUrl) {
+                    newFotoUrl = uploadedUrl;
+                } else {
+                    // Fallback to old url or empty string to prevent saving massive base64 to Firestore
+                    newFotoUrl = (profile.foto_profil && !profile.foto_profil.startsWith('data:image/')) ? profile.foto_profil : '';
+                }
             }
+
+            const updated = {
+                ...profile,
+                nama: editProfileData.nama,
+                tujuan: newTujuan,
+                usia: newUsia,
+                berat_kg: newBerat,
+                tinggi_cm: newTinggi,
+                target_kalori: newTarget,
+                target_protein_g: Math.round((newTarget * 0.25) / 4),
+                target_karbo_g: Math.round((newTarget * 0.5) / 4),
+                target_lemak_g: Math.round((newTarget * 0.25) / 9),
+                foto_profil: newFotoUrl
+            };
+
+            if (onTargetUpdated) {
+                onTargetUpdated(newTarget);
+            }
+
+            await saveUserProfile(updated);
+            setProfile(updated);
+            setShowEditProfile(false);
+        } catch (error) {
+            console.error("Error saving profile:", error);
+            alert("Gagal menyimpan profil. Silakan coba lagi.");
+        } finally {
+            setLoading(false);
         }
-
-        const updated = {
-            ...profile,
-            nama: editProfileData.nama,
-            tujuan: newTujuan,
-            usia: newUsia,
-            berat_kg: newBerat,
-            tinggi_cm: newTinggi,
-            target_kalori: newTarget,
-            target_protein_g: Math.round((newTarget * 0.25) / 4),
-            target_karbo_g: Math.round((newTarget * 0.5) / 4),
-            target_lemak_g: Math.round((newTarget * 0.25) / 9),
-            foto_profil: newFotoUrl
-        };
-
-        if (onTargetUpdated) {
-            onTargetUpdated(newTarget);
-        }
-
-        await saveUserProfile(updated);
-        setProfile(updated);
-        setShowEditProfile(false);
-        setLoading(false);
     };
 
     return (
