@@ -122,6 +122,11 @@ const translations: Record<'id' | 'en', Record<string, string>> = {
     error_coba_lagi: 'Coba lagi',
     status_kurang: 'Kurang', status_berlebih: 'Berlebih', status_seimbang: 'Seimbang',
     hari_sen: 'Sen', hari_sel: 'Sel', hari_rab: 'Rab', hari_kam: 'Kam', hari_jum: 'Jum', hari_sab: 'Sab', hari_min: 'Min',
+    
+    // Toasts
+    profile_updated_success: "Profil berhasil diperbarui",
+    profile_updated_error: "Gagal menyimpan profil",
+    
     rata_rata_vitamin: 'Rata-rata Vitamin & Mineral / Hari',
     rekor_terbaik: 'Rekor Terbaik',
     hari_title: 'Hari',
@@ -315,6 +320,11 @@ const translations: Record<'id' | 'en', Record<string, string>> = {
     error_coba_lagi: 'Try again',
     status_kurang: 'Not Enough', status_berlebih: 'Excessive', status_seimbang: 'Balanced',
     hari_sen: 'Mon', hari_sel: 'Tue', hari_rab: 'Wed', hari_kam: 'Thu', hari_jum: 'Fri', hari_sab: 'Sat', hari_min: 'Sun',
+    
+    // Toasts
+    profile_updated_success: "Profile updated successfully",
+    profile_updated_error: "Failed to save profile",
+    
     rata_rata_vitamin: 'Average Vitamins & Minerals / Day',
     rekor_terbaik: 'Best Record',
     hari_title: 'Days',

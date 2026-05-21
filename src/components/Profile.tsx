@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { UserProfile, getUserProfile, saveUserProfile, getLogsForDateRange, logoutUser, deleteAccount, uploadProfileImage, auth } from '../lib/firebase';
 import { Edit2, LogOut, ChevronRight, Calculator, Bell, Globe, Moon, Scale, Info, Check, ImagePlus, Camera, UserPlus, Trash2, Shield } from 'lucide-react';
 import BottomSheet from './BottomSheet';
+import Toast, { ToastType } from './shared/Toast';
 import { format, subDays } from 'date-fns';
 
 import { useSettings } from '../contexts/SettingsContext';
@@ -13,6 +14,7 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
     const [loading, setLoading] = useState(true);
     const [streaks, setStreaks] = useState({ current: 0 });
     const [totalMeals, setTotalMeals] = useState(0);
+    const [toast, setToast] = useState<{ message: string, type: ToastType } | null>(null);
 
     const { settings, updateSetting } = useSettings();
     const t = useTranslation();
@@ -277,9 +279,11 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
             await saveUserProfile(updated);
             setProfile(updated);
             setShowEditProfile(false);
+            setToast({ message: t.profile_updated_success as string, type: 'success' });
         } catch (error) {
             console.error("Error saving profile:", error);
-            alert("Gagal menyimpan profil. Silakan coba lagi.");
+            const errMsg = error instanceof Error ? error.message : String(error);
+            setToast({ message: `${t.profile_updated_error}: ${errMsg}`, type: 'error' });
         } finally {
             setLoading(false);
         }
@@ -287,6 +291,7 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
 
     return (
         <div className="p-5 relative min-h-full pb-20 space-y-8 animate-in fade-in duration-500">
+            {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
             {/* Identity */}
             <div className="flex items-center gap-4 bg-bg-card p-5 rounded-[24px] shadow-[0_2px_16px_rgba(0,0,0,0.06)] border border-border">
                 <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-primary-light text-white flex items-center justify-center text-3xl font-black shrink-0 shadow-inner overflow-hidden">
