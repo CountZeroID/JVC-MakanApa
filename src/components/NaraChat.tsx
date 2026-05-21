@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { Send } from 'lucide-react';
+import { Send, Plus, History as HistoryIcon, ChevronRight } from 'lucide-react';
 import { chatWithNara } from '../lib/gemini';
 import { auth, NaraChatsCollection, saveNaraChat, getUserProfile, NaraChat as NaraChatType, db } from '../lib/firebase';
 import { collection, query, where, orderBy, onSnapshot, getDocs } from 'firebase/firestore';
@@ -9,6 +9,7 @@ import { cn } from '../lib/utils';
 import { motion } from 'motion/react';
 import { useTranslation } from '../hooks/useTranslation';
 import { useSettings } from '../contexts/SettingsContext';
+import BottomSheet from './BottomSheet';
 
 export default function NaraChat() {
     const { settings } = useSettings();
@@ -18,7 +19,12 @@ export default function NaraChat() {
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const greetingTriggered = useRef(false);
-    const dateKey = format(new Date(), 'yyyy-MM-dd');
+    const todayStr = format(new Date(), 'yyyy-MM-dd');
+    
+    const [currentDateKey, setCurrentDateKey] = useState<string>(todayStr);
+    const [pendingGreeting, setPendingGreeting] = useState<string | null>(null);
+    const [showHistory, setShowHistory] = useState(false);
+    const [historyDates, setHistoryDates] = useState<string[]>([]);
 
     useEffect(() => {
         if (!auth.currentUser) return;
@@ -26,7 +32,7 @@ export default function NaraChat() {
         const q = query(
             collection(db, NaraChatsCollection),
             where("userId", "==", auth.currentUser.uid),
-            where("date_key", "==", dateKey),
+            where("date_key", "==", currentDateKey),
             orderBy("timestamp", "asc")
         );
 
@@ -35,18 +41,18 @@ export default function NaraChat() {
             setMessages(msgs);
             
             // Generate greeting if this is the first message today (only once)
-            if (msgs.length === 0 && !greetingTriggered.current) {
+            if (currentDateKey === todayStr && msgs.length === 0 && !greetingTriggered.current) {
                 greetingTriggered.current = true;
                 generateGreeting();
             }
         });
 
         return () => unsubscribe();
-    }, []);
+    }, [currentDateKey]);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages, isLoading]);
+    }, [messages, pendingGreeting, isLoading]);
 
     const buildContext = async () => {
         const profile = await getUserProfile();
@@ -56,7 +62,7 @@ export default function NaraChat() {
         const logsQ = query(
             collection(db, 'food_logs'),
             where("userId", "==", auth.currentUser?.uid),
-            where("date_key", "==", dateKey)
+            where("date_key", "==", todayStr)
         );
         const logsSnap = await getDocs(logsQ);
         
@@ -72,7 +78,7 @@ export default function NaraChat() {
         const logSummary = Object.entries(mealGroups).map(([type, meals]) => {
             if (meals.length === 0) return `${type}: belum ada`;
             return `${type}: ` + meals.map(m => `${m.nama_makanan} (${m.kalori}kcal)`).join(', ');
-        }).join('\n');
+        }).join('\\n');
 
         return {
             nama: profile.nama,
@@ -98,21 +104,31 @@ export default function NaraChat() {
             
             const response = await chatWithNara(message, [], context);
             
-            await saveNaraChat({
-                 role: 'model',
-                 text: response,
-                 date_key: dateKey
-            });
+            setPendingGreeting(response);
         } catch (error) {
             console.error(error);
-            await saveNaraChat({
-                role: 'model',
-                text: t.nara_error,
-                date_key: dateKey
-            });
+            setPendingGreeting(t.nara_error);
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const loadHistoryDates = async () => {
+        if (!auth.currentUser) return;
+        const q = query(
+            collection(db, NaraChatsCollection),
+            where("userId", "==", auth.currentUser.uid)
+        );
+        const snap = await getDocs(q);
+        const dates = new Set<string>();
+        snap.forEach(doc => dates.add(doc.data().date_key));
+        const sorted = Array.from(dates).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+        setHistoryDates(sorted);
+    };
+
+    const handleOpenHistory = async () => {
+        setShowHistory(true);
+        await loadHistoryDates();
     };
 
     const handleSend = async (text: string) => {
@@ -123,11 +139,21 @@ export default function NaraChat() {
         setIsLoading(true);
 
         try {
+            // Save greeting first if exists
+            if (currentDateKey === todayStr && messages.length === 0 && pendingGreeting) {
+                await saveNaraChat({
+                     role: 'model',
+                     text: pendingGreeting,
+                     date_key: todayStr
+                });
+                setPendingGreeting(null);
+            }
+
             // Save user message
             await saveNaraChat({
                 role: 'user',
                 text: userMsg,
-                date_key: dateKey
+                date_key: currentDateKey
             });
 
             const context = await buildContext();
@@ -145,38 +171,59 @@ export default function NaraChat() {
             await saveNaraChat({
                 role: 'model',
                 text: response,
-                date_key: dateKey
+                date_key: currentDateKey
             });
         } catch (error) {
             console.error(error);
             await saveNaraChat({
                 role: 'model',
                 text: t.nara_error,
-                date_key: dateKey
+                date_key: currentDateKey
             });
         } finally {
             setIsLoading(false);
         }
     };
 
+    const displayMessages = [...messages];
+    if (currentDateKey === todayStr && messages.length === 0 && pendingGreeting) {
+        displayMessages.push({
+            id: 'pending-greeting',
+            role: 'model',
+            text: pendingGreeting,
+            date_key: todayStr,
+            timestamp: new Date()
+        } as NaraChatType);
+    }
+
     return (
         <div className="flex flex-col h-full bg-bg-main relative">
             {/* Header */}
-            <div className="flex items-center gap-3 p-5 border-b border-border bg-bg-card sticky top-0 z-10 shrink-0">
-                <div className="w-12 h-12 rounded-full overflow-hidden shrink-0 flex items-center justify-center bg-gradient-to-br from-[#7B61FF] to-[#A28DF6] shadow-[0_4px_12px_rgba(123,97,255,0.3)]">
-                    <span className="text-2xl pt-0.5">✨</span>
+            <div className="flex items-center justify-between p-4 border-b border-border bg-bg-card sticky top-0 z-10 shrink-0">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 flex items-center justify-center bg-gradient-to-br from-[#7B61FF] to-[#A28DF6] shadow-[0_4px_12px_rgba(123,97,255,0.3)]">
+                        <span className="text-xl pt-0.5">✨</span>
+                    </div>
+                    <div>
+                        <h2 className="text-base font-black font-heading text-text-primary flex items-center gap-1.5">
+                            Nara <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                        </h2>
+                        <p className="text-[10px] font-bold text-text-muted mt-0.5 tracking-wide">{t.nara_subtitle}</p>
+                    </div>
                 </div>
-                <div>
-                    <h2 className="text-lg font-black font-heading text-text-primary flex items-center gap-1.5">
-                        Nara <div className="w-2 h-2 rounded-full bg-primary" />
-                    </h2>
-                    <p className="text-xs font-bold text-text-muted mt-0.5 tracking-wide">{t.nara_subtitle}</p>
+                <div className="flex gap-2">
+                    <button onClick={handleOpenHistory} className="p-2 text-text-secondary bg-bg-main border border-border rounded-xl hover:bg-border/50 transition-colors">
+                        <HistoryIcon size={18} />
+                    </button>
+                    <button onClick={() => setCurrentDateKey(todayStr)} className="p-2 text-white bg-primary rounded-xl hover:bg-primary-light transition-colors shadow-sm">
+                        <Plus size={18} />
+                    </button>
                 </div>
             </div>
 
             {/* Chat Area */}
             <div className="flex-1 overflow-y-auto p-5 space-y-4 pb-4">
-                {messages.map((msg, i) => {
+                {displayMessages.map((msg, i) => {
                     const isUser = msg.role === 'user';
                     return (
                         <motion.div 
@@ -244,38 +291,68 @@ export default function NaraChat() {
             </div>
 
             {/* Input Area */}
-            <div className="bg-bg-card border-t border-border p-4 shrink-0">
-                <div className="flex overflow-x-auto hidden-scrollbar gap-2 mb-3 pb-1">
-                    {[t.nara_chip1, t.nara_chip2, t.nara_chip3, t.nara_chip4].map((action, idx) => (
-                        <button
-                            key={idx}
-                            onClick={() => handleSend(action)}
-                            className="shrink-0 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold rounded-xl transition-colors border border-primary/20"
-                        >
-                            {action}
-                        </button>
-                    ))}
+            {currentDateKey !== todayStr ? (
+                <div className="bg-bg-card border-t border-border p-4 shrink-0 text-center text-sm font-medium text-text-muted">
+                    {t.nav_history}: {format(new Date(currentDateKey), 'dd MMM yyyy')}
                 </div>
+            ) : (
+                <div className="bg-bg-card border-t border-border p-4 shrink-0">
+                    <div className="flex overflow-x-auto hidden-scrollbar gap-2 mb-3 pb-1">
+                        {[t.nara_chip1, t.nara_chip2, t.nara_chip3, t.nara_chip4].map((action, idx) => (
+                            <button
+                                key={idx}
+                                onClick={() => handleSend(action)}
+                                className="shrink-0 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold rounded-xl transition-colors border border-primary/20"
+                            >
+                                {action}
+                            </button>
+                        ))}
+                    </div>
 
-                <div className="relative flex items-center">
-                    <input
-                        type="text"
-                        value={inputText}
-                        onChange={(e) => setInputText(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleSend(inputText)}
-                        placeholder={t.nara_placeholder}
-                        disabled={isLoading}
-                        className="w-full bg-bg-main border border-border/50 rounded-full pl-5 pr-12 py-3.5 text-sm font-medium text-text-primary focus:outline-none focus:ring-2 focus:ring-[#7B61FF]/30 placeholder:text-text-muted"
-                    />
-                    <button
-                        onClick={() => handleSend(inputText)}
-                        disabled={!inputText.trim() || isLoading}
-                        className="absolute right-2 p-2 bg-primary hover:bg-primary-light text-white rounded-full transition-transform disabled:opacity-50 disabled:hover:scale-100 hover:scale-105 active:scale-95"
-                    >
-                        <Send size={16} className="-ml-0.5" />
-                    </button>
+                    <div className="relative flex items-center">
+                        <input
+                            type="text"
+                            value={inputText}
+                            onChange={(e) => setInputText(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleSend(inputText)}
+                            placeholder={t.nara_placeholder}
+                            disabled={isLoading}
+                            className="w-full bg-bg-main border border-border/50 rounded-full pl-5 pr-12 py-3.5 text-sm font-medium text-text-primary focus:outline-none focus:ring-2 focus:ring-[#7B61FF]/30 placeholder:text-text-muted"
+                        />
+                        <button
+                            onClick={() => handleSend(inputText)}
+                            disabled={!inputText.trim() || isLoading}
+                            className="absolute right-2 p-2 bg-primary hover:bg-primary-light text-white rounded-full transition-transform disabled:opacity-50 disabled:hover:scale-100 hover:scale-105 active:scale-95"
+                        >
+                            <Send size={16} className="-ml-0.5" />
+                        </button>
+                    </div>
                 </div>
-            </div>
+            )}
+
+            <BottomSheet isOpen={showHistory} onClose={() => setShowHistory(false)} title={t.nav_history}>
+                <div className="px-4 pb-6 space-y-2">
+                    {historyDates.length === 0 ? (
+                        <p className="text-sm font-medium text-text-muted text-center py-4">Belum ada riwayat obrolan.</p>
+                    ) : (
+                        historyDates.map(date => (
+                            <button
+                                key={date}
+                                onClick={() => {
+                                    setCurrentDateKey(date);
+                                    setShowHistory(false);
+                                }}
+                                className="w-full flex items-center justify-between p-4 rounded-xl border border-border bg-bg-main hover:border-primary/30 transition-all text-left"
+                            >
+                                <span className="text-sm font-bold text-text-primary">
+                                    {format(new Date(date), 'dd MMMM yyyy')}
+                                </span>
+                                <ChevronRight size={16} className="text-text-muted" />
+                            </button>
+                        ))
+                    )}
+                </div>
+            </BottomSheet>
         </div>
     );
 }

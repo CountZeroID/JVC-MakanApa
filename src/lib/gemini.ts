@@ -136,11 +136,13 @@ Data: ${metricsStr}
   return [];
 };
 
-export const analyzeFoodImage = async (base64Image: string, mimeType: string): Promise<FoodAnalysisResult> => {
+export const analyzeFoodImage = async (base64Image: string, mimeType: string, lang: string = 'id'): Promise<FoodAnalysisResult> => {
   try {
     const timeoutPromise = new Promise<never>((_, reject) => {
       setTimeout(() => reject(new Error("Analisis memakan waktu terlalu lama. Coba foto dengan pencahayaan lebih baik ya!")), 15000);
     });
+
+    const finalPrompt = GEMINI_SYSTEM_PROMPT + `\\n\\nPENTING: Seluruh teks dalam JSON balasanmu (seperti nama_makanan, deskripsi_singkat, catatan_gizi, bahan_makanan.nama, dll) HARUS dalam bahasa ${lang === 'en' ? 'Inggris (English)' : 'Indonesia'}.`;
 
     const aiPromise = ai.models.generateContent({
       model: "gemini-3.5-flash",
@@ -156,7 +158,7 @@ export const analyzeFoodImage = async (base64Image: string, mimeType: string): P
         ]
       },
       config: {
-        systemInstruction: GEMINI_SYSTEM_PROMPT,
+        systemInstruction: finalPrompt,
         responseMimeType: "application/json",
       }
     });

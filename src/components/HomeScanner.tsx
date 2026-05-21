@@ -6,9 +6,11 @@ import { saveFoodLog, getUserProfile, uploadFoodImage, updateFoodLogImage } from
 import { cn } from '../lib/utils';
 import { format } from 'date-fns';
 import { useTranslation } from '../hooks/useTranslation';
+import { useSettings } from '../contexts/SettingsContext';
 import { MacroBar, VitaminBar } from './shared/NutritionBars';
 
 export default function HomeScanner({ onSaveSuccess }: { onSaveSuccess: () => void }) {
+  const { settings } = useSettings();
   const t = useTranslation();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageBase64, setImageBase64] = useState<{data: string, mime: string} | null>(null);
@@ -90,7 +92,7 @@ export default function HomeScanner({ onSaveSuccess }: { onSaveSuccess: () => vo
   const performAnalysis = async (base64: string, mimeType: string) => {
     setIsAnalyzing(true);
     try {
-      const data = await analyzeFoodImage(base64, mimeType);
+      const data = await analyzeFoodImage(base64, mimeType, settings.language);
       if (data.error) {
         setError(data.error);
         setResult(null);
@@ -297,7 +299,7 @@ export default function HomeScanner({ onSaveSuccess }: { onSaveSuccess: () => vo
                           <h2 className="text-2xl font-bold text-text-primary leading-tight font-heading mb-1 break-words">
                               {result.nama_makanan} {result.emoji}
                           </h2>
-                          <p className="text-xs text-text-secondary line-clamp-2">{result.deskripsi_singkat}</p>
+                          <p className="text-xs text-text-secondary leading-relaxed">{result.deskripsi_singkat}</p>
                       </div>
                       <div className="text-right shrink-0 mt-1">
                           <p className="text-text-muted text-[10px] font-bold uppercase tracking-widest mb-1">{t.totalKalori}</p>

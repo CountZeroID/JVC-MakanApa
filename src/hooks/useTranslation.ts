@@ -152,7 +152,7 @@ const translations: Record<'id' | 'en', Record<string, string>> = {
     
     alergi_kacang: 'Kacang',
     alergi_seafood: 'Seafood',
-    alergi_susu: 'Susu Sapi',
+    alergi_susu_sapi: 'Susu Sapi',
     alergi_telur: 'Telur',
     alergi_gluten: 'Gluten',
     alergi_kedelai: 'Kedelai',
@@ -346,7 +346,7 @@ const translations: Record<'id' | 'en', Record<string, string>> = {
     
     alergi_kacang: 'Peanuts',
     alergi_seafood: 'Seafood',
-    alergi_susu: 'Dairy',
+    alergi_susu_sapi: 'Cow\\'s Milk',
     alergi_telur: 'Eggs',
     alergi_gluten: 'Gluten',
     alergi_kedelai: 'Soy',

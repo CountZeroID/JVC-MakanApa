@@ -133,7 +133,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                     <button 
                         onClick={handleGoogle}
                         disabled={loadingMethod !== null}
-                        className="w-full bg-white border border-border text-gray-800 font-bold py-4 rounded-xl flex items-center justify-center gap-3 shadow-sm hover:bg-gray-50 transition-colors active:scale-[0.98] disabled:opacity-75 cursor-pointer disabled:cursor-not-allowed"
+                        className="w-full bg-bg-card border border-border text-text-primary font-bold py-4 rounded-xl flex items-center justify-center gap-3 shadow-sm hover:bg-border/30 transition-colors active:scale-[0.98] disabled:opacity-75 cursor-pointer disabled:cursor-not-allowed"
                     >
                         {loadingMethod === 'google' ? (
                             <div className="flex items-center gap-2">

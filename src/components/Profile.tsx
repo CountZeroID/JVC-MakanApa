@@ -485,7 +485,7 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
                 </div>
                 <div className="flex items-baseline justify-center gap-2">
                   <span className="text-2xl font-bold text-text-primary">MakanApa</span>
-                  <span className="text-sm font-medium text-primary-light">v1.0</span>
+                  <span className="text-sm font-medium text-primary-light">v1.20</span>
                 </div>
                 <p className="text-sm text-text-muted font-medium mb-4 mt-1">Foto. Kenali. Sehat.</p>
                 
@@ -687,9 +687,15 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
                         </div>
                     </div>
                     
+                    {(Number(editProfileData.usia) <= 0 || Number(editProfileData.berat_kg) <= 0 || Number(editProfileData.tinggi_cm) <= 0) && (
+                        <p className="text-error text-xs font-bold mt-2 text-center">
+                            {t.error_negative_input || "Silakan masukkan data/nilai yang benar"}
+                        </p>
+                    )}
+                    
                     <button 
                         onClick={handleSaveEditProfile}
-                        disabled={loading || !editProfileData.nama.trim()}
+                        disabled={loading || !editProfileData.nama.trim() || Number(editProfileData.usia) <= 0 || Number(editProfileData.berat_kg) <= 0 || Number(editProfileData.tinggi_cm) <= 0}
                         className="w-full bg-primary text-white font-bold py-4 rounded-xl mt-4 active:scale-[0.98] transition-transform shadow-lg shadow-primary/20 disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                         {loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : t.btn_simpan}
@@ -705,7 +711,7 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
                         </div>
                         <div className="flex items-baseline justify-center gap-2">
                           <span className="text-2xl font-bold text-text-primary">MakanApa</span>
-                          <span className="text-sm font-medium text-primary-light">v1.0</span>
+                          <span className="text-sm font-medium text-primary-light">v1.20</span>
                         </div>
                         <p className="text-sm font-bold text-primary tracking-widest uppercase mb-4 mt-1">Foto. Kenali. Sehat.</p>
                     </div>

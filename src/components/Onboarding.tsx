@@ -37,7 +37,11 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
   const [tidakAdaAlergi, setTidakAdaAlergi] = useState(false);
 
   // Validation
-  const isStep1Valid = nama.trim() !== '' && usia !== '' && berat !== '' && tinggi !== '';
+  const hasNegativeInput = (usia !== '' && Number(usia) <= 0) || 
+                           (berat !== '' && Number(berat) <= 0) || 
+                           (tinggi !== '' && Number(tinggi) <= 0);
+
+  const isStep1Valid = nama.trim() !== '' && usia !== '' && berat !== '' && tinggi !== '' && !hasNegativeInput;
   const isStep2Valid = tujuan !== '';
 
   const handleToggleAlergi = (item: string) => {
@@ -213,9 +217,15 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                                     </div>
                                 </div>
                             </div>
+                            
+                            {hasNegativeInput && (
+                                <p className="text-error text-xs font-bold mt-2 text-center">
+                                    {t.error_negative_input || "Silakan masukkan data/nilai yang benar"}
+                                </p>
+                            )}
                         </div>
 
-                        <div className="fixed bottom-0 inset-x-0 p-6 bg-gradient-to-t from-white via-white to-transparent max-w-lg mx-auto">
+                        <div className="fixed bottom-0 inset-x-0 p-6 bg-gradient-to-t from-bg-main via-bg-main to-transparent max-w-lg mx-auto z-10">
                             <button
                                 disabled={!isStep1Valid}
                                 onClick={() => setStep(2)}
@@ -259,7 +269,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                             ))}
                         </div>
 
-                        <div className="fixed bottom-0 inset-x-0 p-6 bg-gradient-to-t from-white via-white to-transparent max-w-lg mx-auto">
+                        <div className="fixed bottom-0 inset-x-0 p-6 bg-gradient-to-t from-bg-main via-bg-main to-transparent max-w-lg mx-auto z-10">
                             <button
                                 disabled={!isStep2Valid}
                                 onClick={() => setStep(3)}
@@ -313,7 +323,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                             ))}
                         </div>
 
-                        <div className="fixed bottom-0 inset-x-0 p-6 bg-gradient-to-t from-white via-white to-transparent max-w-lg mx-auto">
+                        <div className="fixed bottom-0 inset-x-0 p-6 bg-gradient-to-t from-bg-main via-bg-main to-transparent max-w-lg mx-auto z-10">
                             <button
                                 disabled={!tidakAdaAlergi && alergi.length === 0}
                                 onClick={handleSubmit}

@@ -255,9 +255,9 @@ export default function DailyLog({ targetKalori, onOpenNara }: { targetKalori: n
               <div className="w-16 h-16 rounded-full overflow-hidden shrink-0 flex items-center justify-center bg-gradient-to-br from-[#7B61FF] to-[#A28DF6] shadow-[0_4px_12px_rgba(123,97,255,0.3)] mb-4">
                   <span className="text-3xl pt-1">✨</span>
               </div>
-              <div className="bg-[#EDE9FF] text-[#2A2359] p-4 rounded-[20px] rounded-tl-[4px] text-sm font-medium leading-relaxed mb-6 relative">
+              <div className="bg-primary/10 text-text-primary p-4 rounded-[20px] rounded-tl-[4px] text-sm font-medium leading-relaxed mb-6 relative">
                   "{t.belum_ada_log}. {t.belum_ada_sub} ✨"
-                  <div className="absolute -top-2 -left-2 w-4 h-4 bg-[#EDE9FF] rotate-45 hidden"></div>
+                  <div className="absolute -top-2 -left-2 w-4 h-4 bg-primary/10 rotate-45 hidden"></div>
               </div>
               <button 
                   onClick={onOpenNara}
