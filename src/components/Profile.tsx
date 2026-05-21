@@ -258,7 +258,7 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
                 }
             }
 
-            const updated = {
+            const updated: any = {
                 ...profile,
                 nama: editProfileData.nama,
                 tujuan: newTujuan,
@@ -269,8 +269,11 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
                 target_protein_g: Math.round((newTarget * 0.25) / 4),
                 target_karbo_g: Math.round((newTarget * 0.5) / 4),
                 target_lemak_g: Math.round((newTarget * 0.25) / 9),
-                foto_profil: newFotoUrl
             };
+            
+            if (newFotoUrl) {
+                updated.foto_profil = newFotoUrl;
+            }
 
             if (onTargetUpdated) {
                 onTargetUpdated(newTarget);

@@ -134,7 +134,7 @@ export const saveUserProfile = async (profile: Omit<UserProfile, 'userId'>) => {
     await setDoc(userRef, {
       ...profile,
       userId: auth.currentUser.uid
-    });
+    }, { merge: true });
   } catch (error) {
     handleFirestoreError(error, OperationType.WRITE, path);
   }
