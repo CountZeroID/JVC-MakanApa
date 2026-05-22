@@ -119,7 +119,7 @@ Contoh: ["Protein kamu rata-rata 45g/hari, di bawah target 60g. Coba tambah telu
 Data: ${metricsStr}
 `;
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3.5-flash",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -171,15 +171,15 @@ export const analyzeFoodImage = async (base64Image: string, mimeType: string, la
   } catch (error: any) {
     console.error("Error calling Gemini API:", error);
     if (error.message.includes("Analisis memakan waktu terlalu lama")) {
-        throw error;
+      throw error;
     }
     throw new Error("Gagal menganalisis gambar.");
   }
 };
 
 export const chatWithNara = async (
-  message: string, 
-  history: { role: 'user' | 'model', parts: { text: string }[]}[],
+  message: string,
+  history: { role: 'user' | 'model', parts: { text: string }[] }[],
   userContext: {
     nama: string;
     tujuan: string;
@@ -196,7 +196,7 @@ export const chatWithNara = async (
   }
 ) => {
   const isEn = userContext.language === 'en';
-  
+
   const NARA_SYSTEM_PROMPT = `
 Kamu adalah Nara, AI asisten gizi dari MakanApa.
 
@@ -241,7 +241,7 @@ ${isEn ? "You must respond in English only." : "Kamu harus menjawab dalam Bahasa
       history: history
     });
 
-    const result = await chatSession.sendMessage({ message });
+    const result = await chatSession.sendMessage(message);
     return result.text;
   } catch (error) {
     console.error("Gemini Chat Error:", error);
@@ -250,14 +250,14 @@ ${isEn ? "You must respond in English only." : "Kamu harus menjawab dalam Bahasa
 };
 
 export const preWarmGemini = async () => {
-    try {
-        await ai.models.generateContent({
-            model: "gemini-3.5-flash",
-            contents: { parts: [{ text: "Ping" }] }
-        });
-    } catch (e) {
-        // silently ignore
-    }
+  try {
+    await ai.models.generateContent({
+      model: "gemini-3.5-flash",
+      contents: { parts: [{ text: "Ping" }] }
+    });
+  } catch (e) {
+    // silently ignore
+  }
 };
 
 export const translateUIStrings = async (baseStrings: Record<string, string>, targetLangName: string): Promise<Record<string, string>> => {
@@ -270,12 +270,12 @@ ${JSON.stringify(baseStrings)}`;
 
   try {
     const response = await ai.models.generateContent({
-        model: "gemini-3.5-flash", // Using a fast model for UI translation
-        contents: prompt,
-        config: {
-          responseMimeType: "application/json",
-          temperature: 0.1,
-        }
+      model: "gemini-3.5-flash", // Using a fast model for UI translation
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        temperature: 0.1,
+      }
     });
     const text = response.text;
     if (text) {
@@ -284,6 +284,28 @@ ${JSON.stringify(baseStrings)}`;
   } catch (error) {
     console.error("Gemini translation error:", error);
   }
-  
+
   return baseStrings;
+};
+
+export const generateChatTitle = async (userMessage: string, language: string = 'id'): Promise<string> => {
+  try {
+    const prompt = language === 'en'
+      ? `Generate a very short title (max 5 words) summarizing this chat message. Return ONLY the title text, nothing else.\n\nMessage: "${userMessage}"`
+      : `Buat judul sangat singkat (maksimal 5 kata) yang merangkum pesan chat ini. Kembalikan HANYA teks judulnya, tidak ada yang lain.\n\nPesan: "${userMessage}"`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3.5-flash",
+      contents: prompt,
+      config: {
+        temperature: 0.3,
+        maxOutputTokens: 30,
+      }
+    });
+    const text = response.text?.trim().replace(/^["']|["']$/g, '');
+    return text || (language === 'en' ? 'New Chat' : 'Chat Baru');
+  } catch (error) {
+    console.error("Title generation error:", error);
+    return language === 'en' ? 'New Chat' : 'Chat Baru';
+  }
 };

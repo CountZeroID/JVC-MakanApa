@@ -60,13 +60,12 @@ service cloud.firestore {
     }
 
     function isValidNaraChat(data) {
-      return data.keys().hasAll(['userId', 'role', 'text', 'timestamp', 'date_key'])
-        && data.keys().size() == 5
+      return data.keys().hasAll(['userId', 'role', 'text', 'timestamp', 'session_id'])
         && data.userId == request.auth.uid
         && data.userId is string && data.userId.size() <= 128
         && data.role in ['user', 'model', 'assistant']
         && data.text is string && data.text.size() <= 4000
-        && data.date_key is string && data.date_key.size() <= 15;
+        && data.session_id is string && data.session_id.size() <= 128;
     }
 
     match /nara_chats/{chatId} {
@@ -74,6 +73,16 @@ service cloud.firestore {
       allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
       allow create: if isSignedIn() && isValidNaraChat(incoming());
       allow update: if false; // Chats are append-only
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+
+    match /nara_sessions/{sessionId} {
+      allow get: if isSignedIn() && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn()
+        && incoming().userId == request.auth.uid
+        && incoming().title is string && incoming().title.size() <= 200;
+      allow update: if isSignedIn() && existing().userId == request.auth.uid;
       allow delete: if isSignedIn() && existing().userId == request.auth.uid;
     }
 

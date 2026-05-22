@@ -162,12 +162,51 @@ export interface NaraChat {
   role: 'user' | 'model' | 'assistant';
   text: string;
   timestamp: any;
-  date_key: string;
+  session_id: string;
+  date_key?: string; // legacy support
 }
+
+export interface NaraSession {
+  id?: string;
+  userId: string;
+  title: string;
+  created_at: any;
+  updated_at: any;
+}
+
+export const NaraChatsCollection = 'nara_chats';
+export const NaraSessionsCollection = 'nara_sessions';
+
+export const createNaraSession = async (title: string = 'New Chat'): Promise<string> => {
+  if (!auth.currentUser) throw new Error("Unauthenticated");
+  try {
+    const sessionRef = collection(db, NaraSessionsCollection);
+    const docRef = await addDoc(sessionRef, {
+      userId: auth.currentUser.uid,
+      title,
+      created_at: serverTimestamp(),
+      updated_at: serverTimestamp()
+    });
+    return docRef.id;
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, NaraSessionsCollection);
+    throw error;
+  }
+};
+
+export const updateSessionTitle = async (sessionId: string, title: string) => {
+  if (!auth.currentUser) return;
+  try {
+    const sessionRef = doc(db, NaraSessionsCollection, sessionId);
+    await updateDoc(sessionRef, { title, updated_at: serverTimestamp() });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, NaraSessionsCollection);
+  }
+};
 
 export const saveNaraChat = async (chat: Omit<NaraChat, 'id' | 'timestamp' | 'userId'>) => {
   if (!auth.currentUser) throw new Error("Unauthenticated");
-  const path = 'nara_chats';
+  const path = NaraChatsCollection;
   try {
     const chatRef = collection(db, path);
     await addDoc(chatRef, {
@@ -175,12 +214,15 @@ export const saveNaraChat = async (chat: Omit<NaraChat, 'id' | 'timestamp' | 'us
       userId: auth.currentUser.uid,
       timestamp: serverTimestamp()
     });
+    // Also update session's updated_at
+    if (chat.session_id) {
+      const sessionRef = doc(db, NaraSessionsCollection, chat.session_id);
+      await updateDoc(sessionRef, { updated_at: serverTimestamp() }).catch(() => {});
+    }
   } catch (error) {
     handleFirestoreError(error, OperationType.WRITE, path);
   }
 };
-
-export const NaraChatsCollection = 'nara_chats';
 
 export const uploadFoodImage = async (base64Image: string): Promise<string | undefined> => {
   if (!auth.currentUser) return undefined;
@@ -253,6 +295,10 @@ export const clearAllData = async () => {
     const chatsQuery = query(collection(db, NaraChatsCollection), where('userId', '==', auth.currentUser.uid));
     const chatsSnap = await getDocs(chatsQuery);
     chatsSnap.forEach((docSnap) => batch.delete(docSnap.ref));
+
+    const sessionsQuery = query(collection(db, NaraSessionsCollection), where('userId', '==', auth.currentUser.uid));
+    const sessionsSnap = await getDocs(sessionsQuery);
+    sessionsSnap.forEach((docSnap) => batch.delete(docSnap.ref));
 
     const profileRef = doc(db, 'user_profiles', auth.currentUser.uid);
     batch.delete(profileRef);

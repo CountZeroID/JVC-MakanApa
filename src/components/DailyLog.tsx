@@ -6,6 +6,7 @@ import { id, enUS } from 'date-fns/locale';
 import BottomSheet from './BottomSheet';
 import { useTranslation } from '../hooks/useTranslation';
 import { useSettings } from '../contexts/SettingsContext';
+import { useUnits } from '../hooks/useUnits';
 import { MacroBar, VitaminBar } from './shared/NutritionBars';
 
 type ViewMode = 'day' | 'week' | 'month';
@@ -14,6 +15,7 @@ export default function DailyLog({ targetKalori, onOpenNara }: { targetKalori: n
   const { settings } = useSettings();
   const dateLocale = settings.language === 'en' ? enUS : id;
   const t = useTranslation();
+  const { unitLabel } = useUnits();
   const [viewMode, setViewMode] = useState<ViewMode>('day');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [allRangeLogs, setAllRangeLogs] = useState<FoodLog[]>([]);
@@ -239,9 +241,9 @@ export default function DailyLog({ targetKalori, onOpenNara }: { targetKalori: n
               </div>
               
               <div className="flex-1 grid grid-cols-3 gap-2">
-                  <MacroStat label={t.label_karbo} value={totals.karbo} color="text-warning" />
-                  <MacroStat label={t.label_protein} value={totals.protein} color="text-success" />
-                  <MacroStat label={t.label_lemak} value={totals.lemak} color="text-error" />
+                  <MacroStat label={t.label_karbo} value={totals.karbo} color="text-warning" unit={unitLabel.gram} />
+                  <MacroStat label={t.label_protein} value={totals.protein} color="text-success" unit={unitLabel.gram} />
+                  <MacroStat label={t.label_lemak} value={totals.lemak} color="text-error" unit={unitLabel.gram} />
               </div>
           </div>
       </div>
@@ -432,10 +434,10 @@ export default function DailyLog({ targetKalori, onOpenNara }: { targetKalori: n
   );
 }
 
-function MacroStat({ label, value, color }: { label: string, value: number, color: string }) {
+function MacroStat({ label, value, color, unit = 'g' }: { label: string, value: number, color: string, unit?: string }) {
     return (
         <div className="text-center bg-bg-main rounded-xl py-2.5 border border-border/50">
-            <div className={`text-lg font-black font-mono tracking-tight leading-none ${color}`}>{Math.round(value)}g</div>
+            <div className={`text-lg font-black font-mono tracking-tight leading-none ${color}`}>{Math.round(value)}{unit}</div>
             <div className="text-[9px] text-text-secondary font-bold uppercase tracking-widest mt-1.5">{label}</div>
         </div>
     );

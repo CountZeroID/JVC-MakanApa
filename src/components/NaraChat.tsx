@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { Send, Plus, History as HistoryIcon, ChevronRight, Trash2 } from 'lucide-react';
-import { chatWithNara } from '../lib/gemini';
-import { auth, NaraChatsCollection, saveNaraChat, getUserProfile, NaraChat as NaraChatType, db } from '../lib/firebase';
-import { collection, query, where, orderBy, onSnapshot, getDocs, writeBatch } from 'firebase/firestore';
+import { Send, Plus, History as HistoryIcon, ChevronRight, Trash2, MessageSquare } from 'lucide-react';
+import { chatWithNara, generateChatTitle } from '../lib/gemini';
+import { auth, NaraChatsCollection, NaraSessionsCollection, saveNaraChat, getUserProfile, NaraChat as NaraChatType, NaraSession, createNaraSession, updateSessionTitle, db } from '../lib/firebase';
+import { collection, query, where, orderBy, onSnapshot, getDocs, writeBatch, doc, deleteDoc } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { cn } from '../lib/utils';
 import { motion } from 'motion/react';
@@ -21,38 +21,60 @@ export default function NaraChat() {
     const greetingTriggered = useRef(false);
     const todayStr = format(new Date(), 'yyyy-MM-dd');
     
-    const [currentDateKey, setCurrentDateKey] = useState<string>(todayStr);
+    const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
     const [pendingGreeting, setPendingGreeting] = useState<string | null>(null);
     const [showHistory, setShowHistory] = useState(false);
-    const [historyDates, setHistoryDates] = useState<string[]>([]);
+    const [sessions, setSessions] = useState<NaraSession[]>([]);
+    const [isNewSession, setIsNewSession] = useState(true);
+    const titleGeneratedRef = useRef(false);
 
+    // Listen to messages for the current session
     useEffect(() => {
-        if (!auth.currentUser) return;
+        if (!auth.currentUser || !currentSessionId) return;
         
         const q = query(
             collection(db, NaraChatsCollection),
             where("userId", "==", auth.currentUser.uid),
-            where("date_key", "==", currentDateKey),
+            where("session_id", "==", currentSessionId),
             orderBy("timestamp", "asc")
         );
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const msgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as NaraChatType));
             setMessages(msgs);
-            
-            // Generate greeting if this is the first message today (only once)
-            if (currentDateKey === todayStr && msgs.length === 0 && !greetingTriggered.current) {
-                greetingTriggered.current = true;
-                generateGreeting();
-            }
         });
 
         return () => unsubscribe();
-    }, [currentDateKey]);
+    }, [currentSessionId]);
+
+    // On mount: create a new session and generate greeting
+    useEffect(() => {
+        if (!auth.currentUser) return;
+        startNewSession();
+    }, []);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, pendingGreeting, isLoading]);
+
+    const startNewSession = async () => {
+        if (!auth.currentUser) return;
+        try {
+            const newTitle = settings.language === 'en' ? 'New Chat' : 'Chat Baru';
+            const sessionId = await createNaraSession(newTitle);
+            setCurrentSessionId(sessionId);
+            setMessages([]);
+            setPendingGreeting(null);
+            setIsNewSession(true);
+            greetingTriggered.current = false;
+            titleGeneratedRef.current = false;
+            
+            // Generate greeting for new session
+            generateGreeting(sessionId);
+        } catch (e) {
+            console.error("Error creating session:", e);
+        }
+    };
 
     const buildContext = async () => {
         const profile = await getUserProfile();
@@ -96,7 +118,9 @@ export default function NaraChat() {
         };
     };
 
-    const generateGreeting = async () => {
+    const generateGreeting = async (sessionId: string) => {
+        if (greetingTriggered.current) return;
+        greetingTriggered.current = true;
         setIsLoading(true);
         try {
             const context = await buildContext();
@@ -113,32 +137,50 @@ export default function NaraChat() {
         }
     };
 
-    const loadHistoryDates = async () => {
+    const loadSessions = async () => {
         if (!auth.currentUser) return;
         const q = query(
-            collection(db, NaraChatsCollection),
-            where("userId", "==", auth.currentUser.uid)
+            collection(db, NaraSessionsCollection),
+            where("userId", "==", auth.currentUser.uid),
+            orderBy("updated_at", "desc")
         );
-        const snap = await getDocs(q);
-        const dates = new Set<string>();
-        snap.forEach(doc => dates.add(doc.data().date_key));
-        const sorted = Array.from(dates).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
-        setHistoryDates(sorted);
+        try {
+            const snap = await getDocs(q);
+            const sessionList = snap.docs.map(d => ({ id: d.id, ...d.data() } as NaraSession));
+            // Filter out sessions that only have default titles and no real messages
+            setSessions(sessionList);
+        } catch (e) {
+            // Fallback without orderBy if index not ready
+            const qFallback = query(
+                collection(db, NaraSessionsCollection),
+                where("userId", "==", auth.currentUser.uid)
+            );
+            const snap = await getDocs(qFallback);
+            const sessionList = snap.docs
+                .map(d => ({ id: d.id, ...d.data() } as NaraSession))
+                .sort((a, b) => {
+                    const aTime = a.updated_at?.toDate?.()?.getTime() || 0;
+                    const bTime = b.updated_at?.toDate?.()?.getTime() || 0;
+                    return bTime - aTime;
+                });
+            setSessions(sessionList);
+        }
     };
 
     const handleOpenHistory = async () => {
         setShowHistory(true);
-        await loadHistoryDates();
+        await loadSessions();
     };
 
-    const handleDeleteHistoryDate = async (date: string) => {
+    const handleDeleteSession = async (sessionId: string) => {
         if (!auth.currentUser) return;
         
         try {
+            // Delete all messages in this session
             const q = query(
                 collection(db, NaraChatsCollection),
                 where("userId", "==", auth.currentUser.uid),
-                where("date_key", "==", date)
+                where("session_id", "==", sessionId)
             );
             const snap = await getDocs(q);
             
@@ -146,47 +188,55 @@ export default function NaraChat() {
             snap.forEach(docSnap => {
                 batch.delete(docSnap.ref);
             });
+            // Delete the session document
+            const sessionRef = doc(db, NaraSessionsCollection, sessionId);
+            batch.delete(sessionRef);
             await batch.commit();
 
-            if (currentDateKey === date) {
-                setMessages([]);
-                if (date === todayStr) {
-                    greetingTriggered.current = false;
-                    setPendingGreeting(null);
-                    generateGreeting();
-                }
+            // If we deleted the current session, start a new one
+            if (currentSessionId === sessionId) {
+                startNewSession();
             }
 
-            await loadHistoryDates();
+            await loadSessions();
         } catch (error) {
-            console.error("Error deleting history for date:", date, error);
+            console.error("Error deleting session:", sessionId, error);
         }
     };
 
     const handleSend = async (text: string) => {
-        if (!text.trim() || isLoading) return;
+        if (!text.trim() || isLoading || !currentSessionId) return;
         
         const userMsg = text.trim();
         setInputText("");
         setIsLoading(true);
 
         try {
-            // Save greeting first if exists
-            if (currentDateKey === todayStr && messages.length === 0 && pendingGreeting) {
+            // Save greeting first if exists (first interaction in session)
+            if (isNewSession && pendingGreeting) {
                 await saveNaraChat({
                      role: 'model',
                      text: pendingGreeting,
-                     date_key: todayStr
+                     session_id: currentSessionId
                 });
                 setPendingGreeting(null);
+                setIsNewSession(false);
             }
 
             // Save user message
             await saveNaraChat({
                 role: 'user',
                 text: userMsg,
-                date_key: currentDateKey
+                session_id: currentSessionId
             });
+
+            // Generate title from first user message (background, don't block)
+            if (!titleGeneratedRef.current) {
+                titleGeneratedRef.current = true;
+                generateChatTitle(userMsg, settings.language).then(title => {
+                    updateSessionTitle(currentSessionId, title);
+                }).catch(console.error);
+            }
 
             const context = await buildContext();
             
@@ -203,27 +253,36 @@ export default function NaraChat() {
             await saveNaraChat({
                 role: 'model',
                 text: response,
-                date_key: currentDateKey
+                session_id: currentSessionId
             });
         } catch (error) {
             console.error(error);
             await saveNaraChat({
                 role: 'model',
                 text: t.nara_error,
-                date_key: currentDateKey
+                session_id: currentSessionId
             });
         } finally {
             setIsLoading(false);
         }
     };
 
+    const handleSwitchSession = (sessionId: string) => {
+        setCurrentSessionId(sessionId);
+        setIsNewSession(false);
+        setPendingGreeting(null);
+        titleGeneratedRef.current = true; // Already has a title
+        greetingTriggered.current = true;
+        setShowHistory(false);
+    };
+
     const displayMessages = [...messages];
-    if (currentDateKey === todayStr && messages.length === 0 && pendingGreeting) {
+    if (isNewSession && messages.length === 0 && pendingGreeting) {
         displayMessages.push({
             id: 'pending-greeting',
             role: 'model',
             text: pendingGreeting,
-            date_key: todayStr,
+            session_id: currentSessionId || '',
             timestamp: new Date()
         } as NaraChatType);
     }
@@ -247,7 +306,7 @@ export default function NaraChat() {
                     <button onClick={handleOpenHistory} className="p-2 text-text-secondary bg-bg-main border border-border rounded-xl hover:bg-border/50 transition-colors">
                         <HistoryIcon size={18} />
                     </button>
-                    <button onClick={() => setCurrentDateKey(todayStr)} className="p-2 text-white bg-primary rounded-xl hover:bg-primary-light transition-colors shadow-sm">
+                    <button onClick={startNewSession} className="p-2 text-white bg-primary rounded-xl hover:bg-primary-light transition-colors shadow-sm">
                         <Plus size={18} />
                     </button>
                 </div>
@@ -323,69 +382,63 @@ export default function NaraChat() {
             </div>
 
             {/* Input Area */}
-            {currentDateKey !== todayStr ? (
-                <div className="bg-bg-card border-t border-border p-4 shrink-0 text-center text-sm font-medium text-text-muted">
-                    {t.nav_history}: {format(new Date(currentDateKey), 'dd MMM yyyy')}
-                </div>
-            ) : (
-                <div className="bg-bg-card border-t border-border p-4 shrink-0">
-                    <div className="flex overflow-x-auto hidden-scrollbar gap-2 mb-3 pb-1">
-                        {[t.nara_chip1, t.nara_chip2, t.nara_chip3, t.nara_chip4].map((action, idx) => (
-                            <button
-                                key={idx}
-                                onClick={() => handleSend(action)}
-                                className="shrink-0 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold rounded-xl transition-colors border border-primary/20"
-                            >
-                                {action}
-                            </button>
-                        ))}
-                    </div>
-
-                    <div className="relative flex items-center">
-                        <input
-                            type="text"
-                            value={inputText}
-                            onChange={(e) => setInputText(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && handleSend(inputText)}
-                            placeholder={t.nara_placeholder}
-                            disabled={isLoading}
-                            className="w-full bg-bg-main border border-border/50 rounded-full pl-5 pr-12 py-3.5 text-sm font-medium text-text-primary focus:outline-none focus:ring-2 focus:ring-[#7B61FF]/30 placeholder:text-text-muted"
-                        />
+            <div className="bg-bg-card border-t border-border p-4 shrink-0">
+                <div className="flex overflow-x-auto hidden-scrollbar gap-2 mb-3 pb-1">
+                    {[t.nara_chip1, t.nara_chip2, t.nara_chip3, t.nara_chip4].map((action, idx) => (
                         <button
-                            onClick={() => handleSend(inputText)}
-                            disabled={!inputText.trim() || isLoading}
-                            className="absolute right-2 p-2 bg-primary hover:bg-primary-light text-white rounded-full transition-transform disabled:opacity-50 disabled:hover:scale-100 hover:scale-105 active:scale-95"
+                            key={idx}
+                            onClick={() => handleSend(action)}
+                            className="shrink-0 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold rounded-xl transition-colors border border-primary/20"
                         >
-                            <Send size={16} className="-ml-0.5" />
+                            {action}
                         </button>
-                    </div>
+                    ))}
                 </div>
-            )}
+
+                <div className="relative flex items-center">
+                    <input
+                        type="text"
+                        value={inputText}
+                        onChange={(e) => setInputText(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSend(inputText)}
+                        placeholder={t.nara_placeholder}
+                        disabled={isLoading}
+                        className="w-full bg-bg-main border border-border/50 rounded-full pl-5 pr-12 py-3.5 text-sm font-medium text-text-primary focus:outline-none focus:ring-2 focus:ring-[#7B61FF]/30 placeholder:text-text-muted"
+                    />
+                    <button
+                        onClick={() => handleSend(inputText)}
+                        disabled={!inputText.trim() || isLoading}
+                        className="absolute right-2 p-2 bg-primary hover:bg-primary-light text-white rounded-full transition-transform disabled:opacity-50 disabled:hover:scale-100 hover:scale-105 active:scale-95"
+                    >
+                        <Send size={16} className="-ml-0.5" />
+                    </button>
+                </div>
+            </div>
 
             <BottomSheet isOpen={showHistory} onClose={() => setShowHistory(false)} title={t.nav_history}>
                 <div className="px-4 pb-6 space-y-2">
-                    {historyDates.length === 0 ? (
+                    {sessions.length === 0 ? (
                         <p className="text-sm font-medium text-text-muted text-center py-4">{t.belum_ada_riwayat}</p>
                     ) : (
-                        historyDates.map(date => (
+                        sessions.map(session => (
                             <div
-                                key={date}
+                                key={session.id}
                                 className="w-full flex items-center justify-between p-4 rounded-xl border border-border bg-bg-main hover:border-primary/30 transition-all text-left"
                             >
                                 <button
-                                    onClick={() => {
-                                        setCurrentDateKey(date);
-                                        setShowHistory(false);
-                                    }}
-                                    className="flex-1 text-sm font-bold text-text-primary text-left focus:outline-none"
+                                    onClick={() => handleSwitchSession(session.id!)}
+                                    className="flex-1 text-left focus:outline-none overflow-hidden"
                                 >
-                                    {format(new Date(date), 'dd MMMM yyyy')}
+                                    <p className="text-sm font-bold text-text-primary truncate">{session.title}</p>
+                                    <p className="text-[10px] text-text-muted mt-0.5">
+                                        {session.updated_at?.toDate ? format(session.updated_at.toDate(), 'dd MMM yyyy, HH:mm') : ''}
+                                    </p>
                                 </button>
                                 <div className="flex items-center gap-2 shrink-0">
                                     <button
                                         onClick={async (e) => {
                                             e.stopPropagation();
-                                            await handleDeleteHistoryDate(date);
+                                            await handleDeleteSession(session.id!);
                                         }}
                                         className="p-1.5 text-text-muted hover:text-error hover:bg-error/10 rounded-lg transition-colors cursor-pointer"
                                     >

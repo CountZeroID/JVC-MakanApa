@@ -7,11 +7,13 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveCont
 import { Flame, RefreshCw, Trophy, Medal, Award, Crown } from 'lucide-react';
 import { useTranslation } from '../hooks/useTranslation';
 import { useSettings } from '../contexts/SettingsContext';
+import { useUnits } from '../hooks/useUnits';
 
 export default function Statistics({ targetKalori }: { targetKalori: number }) {
   const { settings } = useSettings();
   const dateLocale = settings.language === 'en' ? enUS : id;
   const t = useTranslation();
+  const { unitLabel } = useUnits();
   const [allLogs, setAllLogs] = useState<FoodLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [insights, setInsights] = useState<string[]>([]);
@@ -312,9 +314,9 @@ Makanan favorit: ${topFoods.map(f => f.name).join(', ')}
                                         if (active && payload && payload.length) {
                                             return (
                                                 <div className="bg-white border border-border shadow-md rounded-lg p-2 text-[10px] font-bold">
-                                                    <div className="text-warning">{t.label_karbo}: {payload[0].value}g</div>
-                                                    <div className="text-success">{t.label_protein}: {payload[1].value}g</div>
-                                                    <div className="text-error">{t.label_lemak}: {payload[2].value}g</div>
+                                                    <div className="text-warning">{t.label_karbo}: {payload[0].value}{unitLabel.gram}</div>
+                                                    <div className="text-success">{t.label_protein}: {payload[1].value}{unitLabel.gram}</div>
+                                                    <div className="text-error">{t.label_lemak}: {payload[2].value}{unitLabel.gram}</div>
                                                 </div>
                                             );
                                         }

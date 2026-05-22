@@ -18,7 +18,7 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
 
     const { settings, updateSetting } = useSettings();
     const t = useTranslation();
-    const { formatWeight } = useUnits();
+    const { unitLabel } = useUnits();
 
     const [showEditLang, setShowEditLang] = useState(false);
     const [tempLang, setTempLang] = useState<string>(settings.language);
@@ -436,15 +436,15 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
                     </div>
                     <div>
                         <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest mb-0.5">{t.label_protein}</p>
-                        <p className="text-xl font-bold font-mono text-success">{profile.target_protein_g} <span className="text-[10px] text-text-muted uppercase">{t.label_gram}</span></p>
+                        <p className="text-xl font-bold font-mono text-success">{profile.target_protein_g} <span className="text-[10px] text-text-muted uppercase">{unitLabel.gram}</span></p>
                     </div>
                     <div>
                         <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest mb-0.5">{t.label_karbo}</p>
-                        <p className="text-xl font-bold font-mono text-warning">{profile.target_karbo_g} <span className="text-[10px] text-text-muted uppercase">{t.label_gram}</span></p>
+                        <p className="text-xl font-bold font-mono text-warning">{profile.target_karbo_g} <span className="text-[10px] text-text-muted uppercase">{unitLabel.gram}</span></p>
                     </div>
                     <div>
                         <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest mb-0.5">{t.label_lemak}</p>
-                        <p className="text-xl font-bold font-mono text-error">{profile.target_lemak_g} <span className="text-[10px] text-text-muted uppercase">{t.label_gram}</span></p>
+                        <p className="text-xl font-bold font-mono text-error">{profile.target_lemak_g} <span className="text-[10px] text-text-muted uppercase">{unitLabel.gram}</span></p>
                     </div>
                 </div>
             </section>
@@ -722,7 +722,7 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
                                     value={editProfileData.berat_kg || ''}
                                     onChange={(e) => setEditProfileData({ ...editProfileData, berat_kg: Number(e.target.value) })}
                                 />
-                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-bold text-text-muted">kg</span>
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-bold text-text-muted">{unitLabel.kg}</span>
                             </div>
                         </div>
                         <div>
@@ -734,7 +734,7 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
                                     value={editProfileData.tinggi_cm || ''}
                                     onChange={(e) => setEditProfileData({ ...editProfileData, tinggi_cm: Number(e.target.value) })}
                                 />
-                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-bold text-text-muted">cm</span>
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-bold text-text-muted">{unitLabel.cm}</span>
                             </div>
                         </div>
                     </div>

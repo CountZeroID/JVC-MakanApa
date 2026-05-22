@@ -4,6 +4,7 @@ import { saveUserProfile } from '../lib/firebase';
 import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { useTranslation } from '../hooks/useTranslation';
+import { useUnits } from '../hooks/useUnits';
 
 const TUJUAN_OPTIONS = (t: Record<string, string>) => [
   { id: 'diet', label: t.goal_diet, icon: '🔥' },
@@ -21,6 +22,7 @@ interface OnboardingProps {
 
 export default function Onboarding({ onComplete }: OnboardingProps) {
   const t = useTranslation();
+  const { unitLabel } = useUnits();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   
@@ -198,7 +200,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                                             placeholder="65"
                                             className="w-full bg-bg-main border-transparent rounded-[16px] px-5 py-4 font-bold text-text-primary focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                                         />
-                                        <span className="absolute right-5 top-1/2 -translate-y-1/2 text-sm text-text-muted font-bold">kg</span>
+                                        <span className="absolute right-5 top-1/2 -translate-y-1/2 text-sm text-text-muted font-bold">{unitLabel.kg}</span>
                                     </div>
                                 </div>
                                 <div>
@@ -211,7 +213,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                                             placeholder="170"
                                             className="w-full bg-bg-main border-transparent rounded-[16px] px-5 py-4 font-bold text-text-primary focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                                         />
-                                        <span className="absolute right-5 top-1/2 -translate-y-1/2 text-sm text-text-muted font-bold">cm</span>
+                                        <span className="absolute right-5 top-1/2 -translate-y-1/2 text-sm text-text-muted font-bold">{unitLabel.cm}</span>
                                     </div>
                                 </div>
                             </div>
