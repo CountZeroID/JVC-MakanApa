@@ -102,3 +102,8 @@ input[type="number"]:focus::-webkit-inner-spin-button,
 input[type="number"]:focus::-webkit-outer-spin-button {
   opacity: 1;
 }
+
+@keyframes slide {
+  0% { transform: translateX(-150%) skewX(-12deg); }
+  100% { transform: translateX(300%) skewX(-12deg); }
+}

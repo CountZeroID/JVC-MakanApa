@@ -79,6 +79,7 @@ export default function App() {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         setUser(firebaseUser);
+        setAppState('loading'); // Show skeleton instantly while fetching
         
         // Run migrations in the background
         migrateLocalProfile(firebaseUser.uid).catch(console.error);
@@ -187,11 +188,34 @@ export default function App() {
 
   if (appState === 'loading') {
     return (
-      <div className="min-h-screen sm:bg-border justify-center sm:py-6 flex font-body bg-bg-main items-center text-center">
-        <div className="flex flex-col items-center">
-          <div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin mb-4"></div>
-          <p className="text-primary font-bold">{t.loading_app}</p>
-        </div>
+      <div className="fixed inset-0 bg-bg-main font-body flex flex-col pointer-events-none">
+        {/* Fake Header Skeleton */}
+        <header className="flex items-center justify-between px-6 py-4 bg-bg-card border-b border-border shrink-0 z-10 animate-pulse">
+          <div className="space-y-2">
+            <div className="h-6 w-32 bg-border rounded-md"></div>
+            <div className="h-4 w-24 bg-border rounded-md"></div>
+          </div>
+          <div className="h-8 w-20 bg-border rounded-full"></div>
+        </header>
+
+        {/* Fake Main Content Skeleton */}
+        <main className="flex-1 p-6 space-y-6 animate-pulse hidden-scrollbar overflow-hidden">
+            {/* Fake Scanner Box */}
+            <div className="w-full aspect-[4/5] bg-bg-card border border-border rounded-[32px] shadow-sm"></div>
+            <div className="space-y-4">
+               <div className="h-20 w-full bg-bg-card border border-border rounded-[24px]"></div>
+               <div className="h-20 w-full bg-bg-card border border-border rounded-[24px]"></div>
+            </div>
+        </main>
+
+        {/* Fake Bottom Navigation Skeleton */}
+        <nav className="bg-bg-card border-t border-border px-6 py-4 pb-8 flex justify-between shrink-0 animate-pulse">
+            <div className="w-10 h-10 bg-border rounded-xl"></div>
+            <div className="w-10 h-10 bg-border rounded-xl"></div>
+            <div className="w-14 h-14 bg-border rounded-full -mt-6 border-4 border-bg-main"></div>
+            <div className="w-10 h-10 bg-border rounded-xl"></div>
+            <div className="w-10 h-10 bg-border rounded-xl"></div>
+        </nav>
       </div>
     );
   }

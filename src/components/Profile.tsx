@@ -32,7 +32,7 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
     const handleImageCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-        
+
         if (!file.type.startsWith('image/')) {
             alert('Pilih file gambar yang valid.');
             return;
@@ -45,7 +45,7 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
             setEditProfileData({ ...editProfileData, foto_profil: base64String });
         };
         reader.readAsDataURL(file);
-        
+
         // Reset input
         e.target.value = '';
     };
@@ -58,13 +58,13 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [editTargets, setEditTargets] = useState({ kalori: 0, protein: 0, karbo: 0, lemak: 0 });
-    
+
     const [showEditAlergi, setShowEditAlergi] = useState(false);
     const [editAlergiConfig, setEditAlergiConfig] = useState<string[]>([]);
 
     const [showEditProfile, setShowEditProfile] = useState(false);
-    const [editProfileData, setEditProfileData] = useState({ 
-        nama: '', 
+    const [editProfileData, setEditProfileData] = useState({
+        nama: '',
         tujuan: 'maintenance',
         usia: 25,
         berat_kg: 60,
@@ -76,13 +76,13 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
         const fetchProfileData = async () => {
             const p = await getUserProfile();
             setProfile(p || null);
-            
+
             // Only fetch last 60 days for streak calculation (not entire history)
             const startDate = format(subDays(new Date(), 60), 'yyyy-MM-dd');
             const endDate = format(new Date(), 'yyyy-MM-dd');
             const logs = await getLogsForDateRange(startDate, endDate);
             setTotalMeals(logs.length);
-            
+
             // basic streak calc
             const loggedDates = [...new Set(logs.map(l => l.date_key))].sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
             let current = 0;
@@ -119,9 +119,9 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
         let newTarget = maintenance;
         if (profile.tujuan === 'diet') newTarget -= 500;
         else if (profile.tujuan === 'bulking') newTarget += 500;
-        
+
         newTarget = Math.max(1200, Math.round(newTarget));
-        
+
         const protein = Math.round((newTarget * 0.20) / 4);
         const lemak = Math.round((newTarget * 0.25) / 9);
         const karbo = Math.round((newTarget * 0.55) / 4);
@@ -184,9 +184,8 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
         setShowEditTarget(true);
     };
 
-    const handleSaveEditTarget = async () => {
+    const handleSaveEditTarget = () => {
         if (!profile) return;
-        setLoading(true);
         const updated = {
             ...profile,
             target_kalori: Number(editTargets.kalori),
@@ -194,11 +193,20 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
             target_karbo_g: Number(editTargets.karbo),
             target_lemak_g: Number(editTargets.lemak)
         };
-        await saveUserProfile(updated);
+        
+        // Optimistic UI update
+        const prevProfile = profile;
         setProfile(updated);
         if (onTargetUpdated) onTargetUpdated(Number(editTargets.kalori));
         setShowEditTarget(false);
-        setLoading(false);
+
+        // Background save
+        saveUserProfile(updated).catch(e => {
+            console.error("Save error:", e);
+            setProfile(prevProfile);
+            if (onTargetUpdated) onTargetUpdated(prevProfile.target_kalori);
+            setToast({ message: t.profile_updated_error as string, type: 'error' });
+        });
     };
 
     const handleOpenEditAlergi = () => {
@@ -207,14 +215,21 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
         setShowEditAlergi(true);
     };
 
-    const handleSaveAlergi = async () => {
+    const handleSaveAlergi = () => {
         if (!profile) return;
-        setLoading(true);
         const updated = { ...profile, alergi: editAlergiConfig };
-        await saveUserProfile(updated);
+        
+        // Optimistic UI update
+        const prevProfile = profile;
         setProfile(updated);
         setShowEditAlergi(false);
-        setLoading(false);
+
+        // Background save
+        saveUserProfile(updated).catch(e => {
+            console.error("Save error:", e);
+            setProfile(prevProfile);
+            setToast({ message: t.profile_updated_error as string, type: 'error' });
+        });
     };
 
     const handleOpenEditProfile = () => {
@@ -230,66 +245,64 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
         setShowEditProfile(true);
     };
 
-    const handleSaveEditProfile = async () => {
+    const handleSaveEditProfile = () => {
         if (!profile) return;
-        setLoading(true);
-        try {
-            const newUsia = Number(editProfileData.usia);
-            const newBerat = Number(editProfileData.berat_kg);
-            const newTinggi = Number(editProfileData.tinggi_cm);
-            const newTujuan = editProfileData.tujuan as any;
+        const newUsia = Number(editProfileData.usia);
+        const newBerat = Number(editProfileData.berat_kg);
+        const newTinggi = Number(editProfileData.tinggi_cm);
+        const newTujuan = editProfileData.tujuan as any;
 
-            let bmr = (10 * newBerat) + (6.25 * newTinggi) - (5 * newUsia);
-            bmr = profile.gender === 'laki-laki' || profile.gender === 'pria' ? bmr + 5 : bmr - 161;
-            const maintenance = bmr * 1.2;
-            let newTarget = maintenance;
-            if (newTujuan === 'diet') newTarget -= 500;
-            else if (newTujuan === 'bulking') newTarget += 500;
-            newTarget = Math.max(1200, Math.round(newTarget));
+        let bmr = (10 * newBerat) + (6.25 * newTinggi) - (5 * newUsia);
+        bmr = profile.gender === 'laki-laki' || profile.gender === 'pria' ? bmr + 5 : bmr - 161;
+        const maintenance = bmr * 1.2;
+        let newTarget = maintenance;
+        if (newTujuan === 'diet') newTarget -= 500;
+        else if (newTujuan === 'bulking') newTarget += 500;
+        newTarget = Math.max(1200, Math.round(newTarget));
 
-            let newFotoUrl = editProfileData.foto_profil;
-            if (newFotoUrl && newFotoUrl.startsWith('data:image/')) {
-                const uploadedUrl = await uploadProfileImage(newFotoUrl);
-                if (uploadedUrl) {
-                    newFotoUrl = uploadedUrl;
-                } else {
-                    // Fallback to old url or empty string to prevent saving massive base64 to Firestore
-                    newFotoUrl = (profile.foto_profil && !profile.foto_profil.startsWith('data:image/')) ? profile.foto_profil : '';
+        let newFotoUrl = editProfileData.foto_profil;
+
+        const updated: any = {
+            ...profile,
+            nama: editProfileData.nama,
+            tujuan: newTujuan,
+            usia: newUsia,
+            berat_kg: newBerat,
+            tinggi_cm: newTinggi,
+            target_kalori: newTarget,
+            target_protein_g: Math.round((newTarget * 0.25) / 4),
+            target_karbo_g: Math.round((newTarget * 0.5) / 4),
+            target_lemak_g: Math.round((newTarget * 0.25) / 9),
+        };
+        if (newFotoUrl) updated.foto_profil = newFotoUrl;
+
+        // Optimistic UI update
+        const prevProfile = profile;
+        setProfile(updated);
+        if (onTargetUpdated) onTargetUpdated(newTarget);
+        setShowEditProfile(false);
+
+        // Background save
+        (async () => {
+            try {
+                if (newFotoUrl && newFotoUrl.startsWith('data:image/')) {
+                    const uploadedUrl = await uploadProfileImage(newFotoUrl);
+                    if (uploadedUrl) {
+                        updated.foto_profil = uploadedUrl;
+                    } else {
+                        updated.foto_profil = (prevProfile.foto_profil && !prevProfile.foto_profil.startsWith('data:image/')) ? prevProfile.foto_profil : '';
+                    }
+                    setProfile({ ...updated }); // Update with real URL
                 }
+                await saveUserProfile(updated);
+            } catch (error) {
+                console.error("Error saving profile:", error);
+                setProfile(prevProfile);
+                if (onTargetUpdated) onTargetUpdated(prevProfile.target_kalori);
+                const errMsg = error instanceof Error ? error.message : String(error);
+                setToast({ message: `${t.profile_updated_error}: ${errMsg}`, type: 'error' });
             }
-
-            const updated: any = {
-                ...profile,
-                nama: editProfileData.nama,
-                tujuan: newTujuan,
-                usia: newUsia,
-                berat_kg: newBerat,
-                tinggi_cm: newTinggi,
-                target_kalori: newTarget,
-                target_protein_g: Math.round((newTarget * 0.25) / 4),
-                target_karbo_g: Math.round((newTarget * 0.5) / 4),
-                target_lemak_g: Math.round((newTarget * 0.25) / 9),
-            };
-            
-            if (newFotoUrl) {
-                updated.foto_profil = newFotoUrl;
-            }
-
-            if (onTargetUpdated) {
-                onTargetUpdated(newTarget);
-            }
-
-            await saveUserProfile(updated);
-            setProfile(updated);
-            setShowEditProfile(false);
-            setToast({ message: t.profile_updated_success as string, type: 'success' });
-        } catch (error) {
-            console.error("Error saving profile:", error);
-            const errMsg = error instanceof Error ? error.message : String(error);
-            setToast({ message: `${t.profile_updated_error}: ${errMsg}`, type: 'error' });
-        } finally {
-            setLoading(false);
-        }
+        })();
     };
 
     return (
@@ -318,21 +331,21 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
             {/* Guest Banner */}
             {auth.currentUser?.isAnonymous && (
                 <div className="bg-warning/10 border border-warning/30 rounded-2xl p-4 flex flex-col gap-3">
-                     <div className="flex items-center gap-3">
-                         <div className="text-xl shrink-0">👤</div>
-                         <div>
-                             <p className="font-bold text-sm text-text-primary mb-0.5">{t.guest_banner}</p>
-                             <p className="text-xs font-medium text-text-secondary">{t.guest_sub}</p>
-                         </div>
-                     </div>
-                     <button 
+                    <div className="flex items-center gap-3">
+                        <div className="text-xl shrink-0">👤</div>
+                        <div>
+                            <p className="font-bold text-sm text-text-primary mb-0.5">{t.guest_banner}</p>
+                            <p className="text-xs font-medium text-text-secondary">{t.guest_sub}</p>
+                        </div>
+                    </div>
+                    <button
                         onClick={async () => {
                             await logoutUser();
                         }}
                         className="w-full bg-primary text-white font-bold py-2.5 flex justify-center items-center gap-2 rounded-xl text-sm"
-                     >
-                         <UserPlus size={16} /> {t.btn_buat_akun}
-                     </button>
+                    >
+                        <UserPlus size={16} /> {t.btn_buat_akun}
+                    </button>
                 </div>
             )}
 
@@ -453,7 +466,7 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
                             <div className={`w-5 h-5 bg-white rounded-full absolute pl-0.5 top-0.5 transition-transform ${settings.darkMode ? 'translate-x-5' : 'translate-x-0.5'}`}></div>
                         </button>
                     </div>
-                    
+
                     <button onClick={() => setShowDeleteConfirm(true)} className="w-full flex items-center justify-between p-4 border-b border-border/50 hover:bg-bg-main transition-colors text-error text-left">
                         <div className="flex items-center gap-3 font-bold text-sm">
                             <Trash2 size={18} /> {t.hapus_akun}
@@ -501,11 +514,11 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
                     <img src="/icon.png" alt="MakanApa" className="w-full h-full object-cover" />
                 </div>
                 <div className="flex items-baseline justify-center gap-2">
-                  <span className="text-2xl font-bold text-text-primary">MakanApa</span>
-                  <span className="text-sm font-medium text-primary-light">v1.20</span>
+                    <span className="text-2xl font-bold text-text-primary">MakanApa</span>
+                    <span className="text-sm font-medium text-primary-light">v1.26</span>
                 </div>
                 <p className="text-sm text-text-muted font-medium mb-4 mt-1">Foto. Kenali. Sehat.</p>
-                
+
                 <button onClick={() => setShowAboutNara(true)} className="text-xs font-bold text-text-secondary border border-border px-4 py-2 rounded-full hover:bg-bg-main transition-colors flex items-center gap-2">
                     <Info size={14} /> {t.tentang_nara_btn}
                 </button>
@@ -516,42 +529,42 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="text-xs font-bold text-text-secondary uppercase tracking-widest mb-1.5 block">{t.label_kcal_unit}</label>
-                            <input 
-                                type="number" 
+                            <input
+                                type="number"
                                 className="w-full bg-bg-main border border-border rounded-xl px-4 py-3 text-lg font-bold text-text-primary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
                                 value={editTargets.kalori}
-                                onChange={(e) => setEditTargets({...editTargets, kalori: Number(e.target.value)})}
+                                onChange={(e) => setEditTargets({ ...editTargets, kalori: Number(e.target.value) })}
                             />
                         </div>
                         <div>
                             <label className="text-xs font-bold text-text-secondary uppercase tracking-widest mb-1.5 block">{t.label_protein_g}</label>
-                            <input 
-                                type="number" 
+                            <input
+                                type="number"
                                 className="w-full bg-bg-main border border-border rounded-xl px-4 py-3 text-lg font-bold text-text-primary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
                                 value={editTargets.protein}
-                                onChange={(e) => setEditTargets({...editTargets, protein: Number(e.target.value)})}
+                                onChange={(e) => setEditTargets({ ...editTargets, protein: Number(e.target.value) })}
                             />
                         </div>
                         <div>
                             <label className="text-xs font-bold text-text-secondary uppercase tracking-widest mb-1.5 block">{t.label_karbo_g}</label>
-                            <input 
-                                type="number" 
+                            <input
+                                type="number"
                                 className="w-full bg-bg-main border border-border rounded-xl px-4 py-3 text-lg font-bold text-text-primary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
                                 value={editTargets.karbo}
-                                onChange={(e) => setEditTargets({...editTargets, karbo: Number(e.target.value)})}
+                                onChange={(e) => setEditTargets({ ...editTargets, karbo: Number(e.target.value) })}
                             />
                         </div>
                         <div>
                             <label className="text-xs font-bold text-text-secondary uppercase tracking-widest mb-1.5 block">{t.label_lemak_g}</label>
-                            <input 
-                                type="number" 
+                            <input
+                                type="number"
                                 className="w-full bg-bg-main border border-border rounded-xl px-4 py-3 text-lg font-bold text-text-primary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
                                 value={editTargets.lemak}
-                                onChange={(e) => setEditTargets({...editTargets, lemak: Number(e.target.value)})}
+                                onChange={(e) => setEditTargets({ ...editTargets, lemak: Number(e.target.value) })}
                             />
                         </div>
                     </div>
-                    <button 
+                    <button
                         onClick={handleSaveEditTarget}
                         className="w-full bg-primary text-white font-bold py-4 rounded-xl mt-4 active:scale-[0.98] transition-transform"
                     >
@@ -586,7 +599,7 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
                             );
                         })}
                     </div>
-                    <button 
+                    <button
                         onClick={handleSaveAlergi}
                         className="w-full bg-primary text-white font-bold py-4 rounded-xl mt-4 active:scale-[0.98] transition-transform"
                     >
@@ -608,30 +621,30 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
                                 )}
                             </div>
                             <div className="flex gap-2">
-                                <button 
+                                <button
                                     onClick={() => profileImageCameraRef.current?.click()}
                                     className="px-3 py-2 bg-bg-main border border-border rounded-xl text-xs font-bold text-text-primary flex items-center gap-2 hover:bg-border transition-colors"
                                 >
                                     <Camera size={16} /> {t.kamera}
                                 </button>
-                                <button 
+                                <button
                                     onClick={() => profileImageUploadRef.current?.click()}
                                     className="px-3 py-2 bg-bg-main border border-border rounded-xl text-xs font-bold text-text-primary flex items-center gap-2 hover:bg-border transition-colors"
                                 >
                                     <ImagePlus size={16} /> {t.galeri}
                                 </button>
-                                <input 
-                                    type="file" 
-                                    accept="image/*" 
-                                    capture="environment" 
-                                    className="hidden" 
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    capture="environment"
+                                    className="hidden"
                                     ref={profileImageCameraRef}
                                     onChange={handleImageCapture}
                                 />
-                                <input 
-                                    type="file" 
-                                    accept="image/*" 
-                                    className="hidden" 
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
                                     ref={profileImageUploadRef}
                                     onChange={handleImageCapture}
                                 />
@@ -640,22 +653,22 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
                     </div>
                     <div>
                         <label className="text-xs font-bold text-text-secondary uppercase tracking-widest mb-1.5 block">{t.label_nama}</label>
-                        <input 
-                            type="text" 
+                        <input
+                            type="text"
                             className="w-full bg-bg-main border border-border rounded-xl px-4 py-3 text-lg font-bold text-text-primary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
                             value={editProfileData.nama}
-                            onChange={(e) => setEditProfileData({...editProfileData, nama: e.target.value})}
+                            onChange={(e) => setEditProfileData({ ...editProfileData, nama: e.target.value })}
                         />
                     </div>
                     <div className="grid grid-cols-3 gap-3">
                         <div>
                             <label className="text-xs font-bold text-text-secondary uppercase tracking-widest mb-1.5 block">{t.label_usia}</label>
                             <div className="relative">
-                                <input 
-                                    type="number" 
+                                <input
+                                    type="number"
                                     className="w-full bg-bg-main border border-border rounded-xl px-4 py-3 text-lg font-bold text-text-primary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all pr-8"
                                     value={editProfileData.usia || ''}
-                                    onChange={(e) => setEditProfileData({...editProfileData, usia: Number(e.target.value)})}
+                                    onChange={(e) => setEditProfileData({ ...editProfileData, usia: Number(e.target.value) })}
                                 />
                                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-bold text-text-muted">th</span>
                             </div>
@@ -663,11 +676,11 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
                         <div>
                             <label className="text-xs font-bold text-text-secondary uppercase tracking-widest mb-1.5 block">{t.label_berat}</label>
                             <div className="relative">
-                                <input 
-                                    type="number" 
+                                <input
+                                    type="number"
                                     className="w-full bg-bg-main border border-border rounded-xl px-4 py-3 text-lg font-bold text-text-primary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all pr-8"
                                     value={editProfileData.berat_kg || ''}
-                                    onChange={(e) => setEditProfileData({...editProfileData, berat_kg: Number(e.target.value)})}
+                                    onChange={(e) => setEditProfileData({ ...editProfileData, berat_kg: Number(e.target.value) })}
                                 />
                                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-bold text-text-muted">kg</span>
                             </div>
@@ -675,11 +688,11 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
                         <div>
                             <label className="text-xs font-bold text-text-secondary uppercase tracking-widest mb-1.5 block">{t.label_tinggi}</label>
                             <div className="relative">
-                                <input 
-                                    type="number" 
+                                <input
+                                    type="number"
                                     className="w-full bg-bg-main border border-border rounded-xl px-4 py-3 text-lg font-bold text-text-primary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all pr-8"
                                     value={editProfileData.tinggi_cm || ''}
-                                    onChange={(e) => setEditProfileData({...editProfileData, tinggi_cm: Number(e.target.value)})}
+                                    onChange={(e) => setEditProfileData({ ...editProfileData, tinggi_cm: Number(e.target.value) })}
                                 />
                                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-bold text-text-muted">cm</span>
                             </div>
@@ -688,34 +701,33 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
                     <div>
                         <label className="text-xs font-bold text-text-secondary uppercase tracking-widest mb-1.5 block">{t.label_tujuan}</label>
                         <div className="grid grid-cols-1 gap-2">
-                             {[
+                            {[
                                 { id: 'diet', label: `🔥 ${t.goal_diet}` },
                                 { id: 'maintenance', label: `⚖️ ${t.goal_maintain}` },
                                 { id: 'bulking', label: `💪 ${t.goal_bulking}` }
-                             ].map(opt => (
+                            ].map(opt => (
                                 <button
                                     key={opt.id}
-                                    onClick={() => setEditProfileData({...editProfileData, tujuan: opt.id})}
-                                    className={`w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all text-left font-bold ${
-                                        editProfileData.tujuan === opt.id 
-                                            ? 'border-primary bg-primary/5 text-primary' 
+                                    onClick={() => setEditProfileData({ ...editProfileData, tujuan: opt.id })}
+                                    className={`w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all text-left font-bold ${editProfileData.tujuan === opt.id
+                                            ? 'border-primary bg-primary/5 text-primary'
                                             : 'border-border bg-bg-card text-text-primary hover:border-primary/30'
-                                    }`}
+                                        }`}
                                 >
                                     <span>{opt.label}</span>
                                     {editProfileData.tujuan === opt.id && <Check size={18} className="text-primary" />}
                                 </button>
-                             ))}
+                            ))}
                         </div>
                     </div>
-                    
+
                     {(Number(editProfileData.usia) <= 0 || Number(editProfileData.berat_kg) <= 0 || Number(editProfileData.tinggi_cm) <= 0) && (
                         <p className="text-error text-xs font-bold mt-2 text-center">
                             {t.error_negative_input || "Silakan masukkan data/nilai yang benar"}
                         </p>
                     )}
-                    
-                    <button 
+
+                    <button
                         onClick={handleSaveEditProfile}
                         disabled={loading || !editProfileData.nama.trim() || Number(editProfileData.usia) <= 0 || Number(editProfileData.berat_kg) <= 0 || Number(editProfileData.tinggi_cm) <= 0}
                         className="w-full bg-primary text-white font-bold py-4 rounded-xl mt-4 active:scale-[0.98] transition-transform shadow-lg shadow-primary/20 disabled:opacity-50 flex items-center justify-center gap-2"
@@ -732,12 +744,12 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
                             <img src="/icon.png" alt="MakanApa" className="w-full h-full object-cover" />
                         </div>
                         <div className="flex items-baseline justify-center gap-2">
-                          <span className="text-2xl font-bold text-text-primary">MakanApa</span>
-                          <span className="text-sm font-medium text-primary-light">v1.20</span>
+                            <span className="text-2xl font-bold text-text-primary">MakanApa</span>
+                            <span className="text-sm font-medium text-primary-light">v1.26</span>
                         </div>
                         <p className="text-sm font-bold text-primary tracking-widest uppercase mb-4 mt-1">Foto. Kenali. Sehat.</p>
                     </div>
-                    
+
                     <div className="h-px bg-border w-full"></div>
 
                     <p className="text-sm font-medium leading-relaxed text-text-secondary text-center">
@@ -747,34 +759,34 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
                     <div className="h-px bg-border w-full"></div>
 
                     <div className="grid gap-4">
-                         <div className="flex items-center gap-4">
-                             <div className="text-2xl bg-bg-main w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border border-border shadow-sm">📷</div>
-                             <div>
-                                 <p className="font-bold text-sm text-text-primary mb-0.5">{t.about_f1_title}</p>
-                                 <p className="text-xs font-medium text-text-secondary">{t.about_f1_desc}</p>
-                             </div>
-                         </div>
-                         <div className="flex items-center gap-4">
-                             <div className="text-2xl bg-bg-main w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border border-border shadow-sm">✨</div>
-                             <div>
-                                 <p className="font-bold text-sm text-text-primary mb-0.5">{t.about_f2_title}</p>
-                                 <p className="text-xs font-medium text-text-secondary">{t.about_f2_desc}</p>
-                             </div>
-                         </div>
-                         <div className="flex items-center gap-4">
-                             <div className="text-2xl bg-bg-main w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border border-border shadow-sm">📊</div>
-                             <div>
-                                 <p className="font-bold text-sm text-text-primary mb-0.5">{t.about_f3_title}</p>
-                                 <p className="text-xs font-medium text-text-secondary">{t.about_f3_desc}</p>
-                             </div>
-                         </div>
-                         <div className="flex items-center gap-4">
-                             <div className="text-2xl bg-bg-main w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border border-border shadow-sm">🎯</div>
-                             <div>
-                                 <p className="font-bold text-sm text-text-primary mb-0.5">{t.about_f4_title}</p>
-                                 <p className="text-xs font-medium text-text-secondary">{t.about_f4_desc}</p>
-                             </div>
-                         </div>
+                        <div className="flex items-center gap-4">
+                            <div className="text-2xl bg-bg-main w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border border-border shadow-sm">📷</div>
+                            <div>
+                                <p className="font-bold text-sm text-text-primary mb-0.5">{t.about_f1_title}</p>
+                                <p className="text-xs font-medium text-text-secondary">{t.about_f1_desc}</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <div className="text-2xl bg-bg-main w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border border-border shadow-sm">✨</div>
+                            <div>
+                                <p className="font-bold text-sm text-text-primary mb-0.5">{t.about_f2_title}</p>
+                                <p className="text-xs font-medium text-text-secondary">{t.about_f2_desc}</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <div className="text-2xl bg-bg-main w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border border-border shadow-sm">📊</div>
+                            <div>
+                                <p className="font-bold text-sm text-text-primary mb-0.5">{t.about_f3_title}</p>
+                                <p className="text-xs font-medium text-text-secondary">{t.about_f3_desc}</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <div className="text-2xl bg-bg-main w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border border-border shadow-sm">🎯</div>
+                            <div>
+                                <p className="font-bold text-sm text-text-primary mb-0.5">{t.about_f4_title}</p>
+                                <p className="text-xs font-medium text-text-secondary">{t.about_f4_desc}</p>
+                            </div>
+                        </div>
                     </div>
 
                     <div className="h-px bg-border w-full"></div>
@@ -785,7 +797,7 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
                         </p>
                     </div>
 
-                    <button 
+                    <button
                         onClick={() => setShowAboutNara(false)}
                         className="w-full bg-bg-main border border-border text-text-secondary font-bold py-4 rounded-xl active:scale-[0.98] transition-transform shadow-sm"
                     >
@@ -804,26 +816,25 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
                             <button
                                 key={opt.id}
                                 onClick={() => setTempLang(opt.id)}
-                                className={`w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all text-left font-bold ${
-                                    tempLang === opt.id 
-                                        ? 'border-primary bg-primary/5 text-primary' 
+                                className={`w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all text-left font-bold ${tempLang === opt.id
+                                        ? 'border-primary bg-primary/5 text-primary'
                                         : 'border-border bg-bg-card text-text-primary hover:border-primary/30'
-                                }`}
+                                    }`}
                             >
                                 <span>{opt.label}</span>
                                 {tempLang === opt.id && <Check size={18} className="text-primary" />}
                             </button>
                         ))}
                     </div>
-                    
+
                     <div className="flex gap-2 mt-4">
-                        <button 
+                        <button
                             onClick={() => setShowEditLang(false)}
                             className="w-1/3 bg-bg-main text-text-secondary font-bold py-4 rounded-xl active:scale-[0.98] transition-transform border border-border"
                         >
                             {t.btn_cancel}
                         </button>
-                        <button 
+                        <button
                             onClick={() => {
                                 updateSetting('language', tempLang as any);
                                 setShowEditLang(false);
@@ -846,26 +857,25 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
                             <button
                                 key={opt.id}
                                 onClick={() => setTempUnit(opt.value)}
-                                className={`w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all text-left font-bold ${
-                                    tempUnit === opt.value 
-                                        ? 'border-primary bg-primary/5 text-primary' 
+                                className={`w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all text-left font-bold ${tempUnit === opt.value
+                                        ? 'border-primary bg-primary/5 text-primary'
                                         : 'border-border bg-bg-card text-text-primary hover:border-primary/30'
-                                }`}
+                                    }`}
                             >
                                 <span>{opt.label}</span>
                                 {tempUnit === opt.value && <Check size={18} className="text-primary" />}
                             </button>
                         ))}
                     </div>
-                    
+
                     <div className="flex gap-2 mt-4">
-                        <button 
+                        <button
                             onClick={() => setShowEditUnit(false)}
                             className="w-1/3 bg-bg-main text-text-secondary font-bold py-4 rounded-xl active:scale-[0.98] transition-transform border border-border"
                         >
                             {t.btn_cancel}
                         </button>
-                        <button 
+                        <button
                             onClick={() => {
                                 updateSetting('unitSystem', tempUnit ? 'imperial' : 'metric');
                                 setShowEditUnit(false);
@@ -928,13 +938,13 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
                         {auth.currentUser?.isAnonymous ? t.guest_logout_warning : t.konfirmasi_keluar_desc}
                     </p>
                     <div className="flex gap-3 pt-2">
-                        <button 
+                        <button
                             onClick={() => setShowLogoutConfirm(false)}
                             className="w-1/2 bg-bg-main text-text-secondary font-bold py-3.5 rounded-xl border border-border hover:bg-bg-card transition-colors active:scale-95"
                         >
                             {t.btn_batal}
                         </button>
-                        <button 
+                        <button
                             onClick={async () => {
                                 if (auth.currentUser?.isAnonymous) {
                                     localStorage.clear();
@@ -958,13 +968,13 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
                         {t.konfirmasi_hapus_akun_desc}
                     </p>
                     <div className="flex gap-3 pt-2">
-                        <button 
+                        <button
                             onClick={() => setShowDeleteConfirm(false)}
                             className="w-1/2 bg-bg-main text-text-secondary font-bold py-3.5 rounded-xl border border-border hover:bg-bg-card transition-colors active:scale-95"
                         >
                             {t.btn_batal}
                         </button>
-                        <button 
+                        <button
                             onClick={handleDeleteAccount}
                             className="w-1/2 bg-error text-white font-bold py-3.5 rounded-xl hover:bg-error/90 transition-colors shadow-[0_4px_15px_rgba(230,57,70,0.3)] active:scale-95"
                         >

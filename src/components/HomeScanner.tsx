@@ -22,6 +22,7 @@ export default function HomeScanner({ onSaveSuccess }: { onSaveSuccess: () => vo
   const [showSaveSheet, setShowSaveSheet] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userAllergies, setUserAllergies] = useState<string[]>([]);
+  const [analyzeProgress, setAnalyzeProgress] = useState(0);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const [showSourceModal, setShowSourceModal] = useState(false);
@@ -37,6 +38,24 @@ export default function HomeScanner({ onSaveSuccess }: { onSaveSuccess: () => vo
         }).catch(e => console.error(e));
     });
   }, []);
+
+  useEffect(() => {
+      let interval: NodeJS.Timeout;
+      if (isAnalyzing) {
+          setAnalyzeProgress(0);
+          interval = setInterval(() => {
+              setAnalyzeProgress(prev => {
+                  const remaining = 95 - prev;
+                  // Fast start, slow end (Progress Illusion)
+                  const step = Math.max(remaining * 0.12, 0.2);
+                  return Math.min(99, prev + step);
+              });
+          }, 100);
+      }
+      return () => {
+          if (interval) clearInterval(interval);
+      };
+  }, [isAnalyzing]);
 
   const handleImageCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -120,7 +139,7 @@ export default function HomeScanner({ onSaveSuccess }: { onSaveSuccess: () => vo
     if (!result || !result.total) return;
     setIsSaving(true);
     try {
-      const docId = await saveFoodLog({
+      const payload: any = {
         nama_makanan: result.nama_makanan || "Makan",
         emoji: result.emoji || "🍽️",
         kategori: result.kategori || "Makanan",
@@ -148,7 +167,15 @@ export default function HomeScanner({ onSaveSuccess }: { onSaveSuccess: () => vo
           kalori: Math.round(b.kalori * multiplier)
         })),
         date_key: format(new Date(), 'yyyy-MM-dd')
+      };
+
+      Object.keys(payload).forEach(key => {
+          if (payload[key] === undefined) {
+              delete payload[key];
+          }
       });
+
+      const docId = await saveFoodLog(payload);
 
       if (imagePreview && docId) {
           uploadFoodImage(imagePreview).then(url => {
@@ -208,7 +235,7 @@ export default function HomeScanner({ onSaveSuccess }: { onSaveSuccess: () => vo
 
       {imagePreview && (
         <div className="space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="w-full aspect-[4/3] rounded-[24px] overflow-hidden shadow-sm relative group bg-border flex items-center justify-center">
+            <div className="w-full aspect-[4/3] md:max-h-[400px] xl:max-h-[450px] rounded-[24px] overflow-hidden shadow-sm relative group bg-border flex items-center justify-center">
                 <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
                 
                 <div className="absolute top-3 left-3 bg-primary text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 shadow-lg">
@@ -241,9 +268,28 @@ export default function HomeScanner({ onSaveSuccess }: { onSaveSuccess: () => vo
             </div>
 
             {isAnalyzing && (
-                <div className="bg-bg-card rounded-[24px] p-8 shadow-[0_2px_16px_rgba(0,0,0,0.06)] border border-border flex flex-col items-center gap-4 animate-pulse">
-                    <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-                    <p className="text-text-secondary font-semibold text-sm">{t.analyzing_2}</p>
+                <div className="bg-bg-card rounded-[24px] p-6 shadow-[0_2px_16px_rgba(0,0,0,0.06)] border border-border flex flex-col gap-4 relative overflow-hidden">
+                    <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent animate-pulse"></div>
+                    <div className="flex justify-between items-end mb-2">
+                        <div>
+                            <p className="text-text-primary font-bold text-lg mb-1">{t.analyzing_1}</p>
+                            <p className="text-text-secondary font-medium text-xs">
+                                {analyzeProgress > 85 ? t.analyzing_5 : 
+                                 analyzeProgress > 60 ? t.analyzing_4 : 
+                                 analyzeProgress > 30 ? t.analyzing_3 : t.analyzing_2}
+                            </p>
+                        </div>
+                        <p className="text-primary font-black text-2xl font-heading">{Math.round(analyzeProgress)}%</p>
+                    </div>
+                    
+                    <div className="w-full bg-border h-3.5 rounded-full overflow-hidden shadow-inner relative">
+                        <div 
+                            className="h-full rounded-full transition-all duration-150 ease-out bg-gradient-to-r from-primary to-primary-light"
+                            style={{ width: `${analyzeProgress}%` }}
+                        >
+                            <div className="absolute inset-0 bg-white/20 w-1/2 -skew-x-12 translate-x-[-150%] animate-[slide_2s_infinite]"></div>
+                        </div>
+                    </div>
                 </div>
             )}
 
