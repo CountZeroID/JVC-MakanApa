@@ -242,6 +242,7 @@ export const updateFoodLogImage = async (logId: string, imageUrl: string) => {
 
 export const clearAllData = async () => {
   if (!auth.currentUser) return;
+  const isAnonymous = auth.currentUser.isAnonymous;
   try {
     const batch = writeBatch(db);
 
@@ -258,7 +259,11 @@ export const clearAllData = async () => {
     
     await batch.commit();
   } catch (error) {
-    handleFirestoreError(error, OperationType.DELETE, 'clearAllData');
+    if (isAnonymous) {
+      console.warn("Swallowed firestore deletion error for anonymous user:", error);
+    } else {
+      handleFirestoreError(error, OperationType.DELETE, 'clearAllData');
+    }
   }
 };
 

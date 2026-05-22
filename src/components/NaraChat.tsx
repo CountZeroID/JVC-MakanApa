@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { Send, Plus, History as HistoryIcon, ChevronRight } from 'lucide-react';
+import { Send, Plus, History as HistoryIcon, ChevronRight, Trash2 } from 'lucide-react';
 import { chatWithNara } from '../lib/gemini';
 import { auth, NaraChatsCollection, saveNaraChat, getUserProfile, NaraChat as NaraChatType, db } from '../lib/firebase';
-import { collection, query, where, orderBy, onSnapshot, getDocs } from 'firebase/firestore';
+import { collection, query, where, orderBy, onSnapshot, getDocs, writeBatch } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { cn } from '../lib/utils';
 import { motion } from 'motion/react';
@@ -129,6 +129,38 @@ export default function NaraChat() {
     const handleOpenHistory = async () => {
         setShowHistory(true);
         await loadHistoryDates();
+    };
+
+    const handleDeleteHistoryDate = async (date: string) => {
+        if (!auth.currentUser) return;
+        
+        try {
+            const q = query(
+                collection(db, NaraChatsCollection),
+                where("userId", "==", auth.currentUser.uid),
+                where("date_key", "==", date)
+            );
+            const snap = await getDocs(q);
+            
+            const batch = writeBatch(db);
+            snap.forEach(docSnap => {
+                batch.delete(docSnap.ref);
+            });
+            await batch.commit();
+
+            if (currentDateKey === date) {
+                setMessages([]);
+                if (date === todayStr) {
+                    greetingTriggered.current = false;
+                    setPendingGreeting(null);
+                    generateGreeting();
+                }
+            }
+
+            await loadHistoryDates();
+        } catch (error) {
+            console.error("Error deleting history for date:", date, error);
+        }
     };
 
     const handleSend = async (text: string) => {
@@ -333,22 +365,35 @@ export default function NaraChat() {
             <BottomSheet isOpen={showHistory} onClose={() => setShowHistory(false)} title={t.nav_history}>
                 <div className="px-4 pb-6 space-y-2">
                     {historyDates.length === 0 ? (
-                        <p className="text-sm font-medium text-text-muted text-center py-4">Belum ada riwayat obrolan.</p>
+                        <p className="text-sm font-medium text-text-muted text-center py-4">{t.belum_ada_riwayat}</p>
                     ) : (
                         historyDates.map(date => (
-                            <button
+                            <div
                                 key={date}
-                                onClick={() => {
-                                    setCurrentDateKey(date);
-                                    setShowHistory(false);
-                                }}
                                 className="w-full flex items-center justify-between p-4 rounded-xl border border-border bg-bg-main hover:border-primary/30 transition-all text-left"
                             >
-                                <span className="text-sm font-bold text-text-primary">
+                                <button
+                                    onClick={() => {
+                                        setCurrentDateKey(date);
+                                        setShowHistory(false);
+                                    }}
+                                    className="flex-1 text-sm font-bold text-text-primary text-left focus:outline-none"
+                                >
                                     {format(new Date(date), 'dd MMMM yyyy')}
-                                </span>
-                                <ChevronRight size={16} className="text-text-muted" />
-                            </button>
+                                </button>
+                                <div className="flex items-center gap-2 shrink-0">
+                                    <button
+                                        onClick={async (e) => {
+                                            e.stopPropagation();
+                                            await handleDeleteHistoryDate(date);
+                                        }}
+                                        className="p-1.5 text-text-muted hover:text-error hover:bg-error/10 rounded-lg transition-colors cursor-pointer"
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
+                                    <ChevronRight size={16} className="text-text-muted" />
+                                </div>
+                            </div>
                         ))
                     )}
                 </div>

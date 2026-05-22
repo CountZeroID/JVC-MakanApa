@@ -8,9 +8,7 @@ import { useTranslation } from '../hooks/useTranslation';
 const TUJUAN_OPTIONS = (t: Record<string, string>) => [
   { id: 'diet', label: t.goal_diet, icon: '🔥' },
   { id: 'bulking', label: t.goal_bulking, icon: '💪' },
-  { id: 'maintenance', label: t.goal_maintain, icon: '⚖️' },
-  { id: 'medis', label: t.goal_medis, icon: '🏥' },
-  { id: 'sehat', label: t.goal_sehat, icon: '🌱' }
+  { id: 'maintenance', label: t.goal_maintain, icon: '⚖️' }
 ];
 
 const ALERGI_OPTIONS = [

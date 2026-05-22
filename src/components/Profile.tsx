@@ -171,7 +171,7 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
         }
     };
 
-    const commonAllergies = ["Kacang", "Seafood", "Susu Sapi", "Telur", "Gluten", "Kedelai", "Gandum"];
+    const commonAllergies = ['Laktosa', 'Gluten', 'Seafood', 'Kacang-kacangan', 'Telur', 'Kedelai', 'Vegetarian', 'Vegan', 'Halal only'];
 
     const handleOpenEditTarget = () => {
         if (!profile) return;
@@ -408,7 +408,7 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
                     {profile.alergi && profile.alergi.length > 0 ? (
                         profile.alergi.map(a => (
                             <span key={a} className="bg-error/10 text-error font-bold text-xs px-3 py-1.5 rounded-lg border border-error/20 inline-flex items-center gap-1">
-                                <span className="text-[10px]">🚫</span> {(t as any)[`alergi_${a.toLowerCase().replace(/ /g, '_')}`] || a}
+                                <span className="text-[10px]">🚫</span> {(t as any)[`alergi_${a.toLowerCase().replace(/ /g, '_').replace('-', '_')}`] || a}
                             </span>
                         ))
                     ) : (
@@ -564,6 +564,12 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
                 <div className="space-y-4 px-1 pb-4">
                     <p className="text-sm font-medium text-text-secondary text-center mb-4">{t.pilih_alergi_desc}</p>
                     <div className="flex flex-wrap gap-2 justify-center mb-6">
+                        <button
+                            onClick={() => setEditAlergiConfig([])}
+                            className={`px-4 py-2 rounded-full border text-sm font-bold transition-all flex items-center gap-2 ${editAlergiConfig.length === 0 ? 'bg-primary border-primary text-white shadow-sm' : 'bg-bg-main border-border text-text-secondary hover:border-primary-light'}`}
+                        >
+                            ✅ {t.tidak_ada_alergi ? t.tidak_ada_alergi.replace('.', '') : "Tidak ada"}
+                        </button>
                         {commonAllergies.map(alergi => {
                             const isSelected = editAlergiConfig.includes(alergi);
                             return (
@@ -573,10 +579,9 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
                                         if (isSelected) setEditAlergiConfig(editAlergiConfig.filter(a => a !== alergi));
                                         else setEditAlergiConfig([...editAlergiConfig, alergi]);
                                     }}
-                                    className={`px-4 py-2 rounded-full border text-sm font-bold transition-all flex items-center gap-2 ${isSelected ? 'bg-error/10 border-error text-error' : 'bg-bg-main border-border text-text-muted hover:border-text-muted'}`}
+                                    className={`px-4 py-2 rounded-full border text-sm font-bold transition-all flex items-center gap-2 ${isSelected ? 'bg-primary-light border-primary-light text-white shadow-sm' : 'bg-bg-main border-border text-text-secondary hover:border-primary-light'}`}
                                 >
-                                    {isSelected && <span className="w-2 h-2 rounded-full bg-error"></span>}
-                                    {(t as any)[`alergi_${alergi.toLowerCase().replace(/ /g, '_')}`] || alergi}
+                                    {(t as any)[`alergi_${alergi.toLowerCase().replace(/ /g, '_').replace('-', '_')}`] || alergi}
                                 </button>
                             );
                         })}
@@ -920,7 +925,7 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
             <BottomSheet isOpen={showLogoutConfirm} onClose={() => setShowLogoutConfirm(false)} title={t.konfirmasi_keluar_title}>
                 <div className="px-2 pb-6 space-y-4">
                     <p className="text-sm text-text-secondary leading-relaxed font-medium">
-                        {t.konfirmasi_keluar_desc}
+                        {auth.currentUser?.isAnonymous ? t.guest_logout_warning : t.konfirmasi_keluar_desc}
                     </p>
                     <div className="flex gap-3 pt-2">
                         <button 
@@ -930,7 +935,14 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
                             {t.btn_batal}
                         </button>
                         <button 
-                            onClick={async () => { await logoutUser(); window.location.reload(); }}
+                            onClick={async () => {
+                                if (auth.currentUser?.isAnonymous) {
+                                    localStorage.clear();
+                                    sessionStorage.clear();
+                                }
+                                await logoutUser();
+                                window.location.reload();
+                            }}
                             className="w-1/2 bg-error text-white font-bold py-3.5 rounded-xl hover:bg-error/90 transition-colors shadow-[0_4px_15px_rgba(230,57,70,0.3)] active:scale-95"
                         >
                             {t.keluar}
