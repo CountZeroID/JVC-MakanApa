@@ -241,7 +241,7 @@ ${isEn ? "You must respond in English only." : "Kamu harus menjawab dalam Bahasa
       history: history
     });
 
-    const result = await chatSession.sendMessage(message);
+    const result = await chatSession.sendMessage({ message });
     return result.text;
   } catch (error) {
     console.error("Gemini Chat Error:", error);
