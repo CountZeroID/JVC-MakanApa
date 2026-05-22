@@ -119,7 +119,7 @@ Contoh: ["Protein kamu rata-rata 45g/hari, di bawah target 60g. Coba tambah telu
 Data: ${metricsStr}
 `;
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3.1-flash-lite",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -145,7 +145,7 @@ export const analyzeFoodImage = async (base64Image: string, mimeType: string, la
     const finalPrompt = GEMINI_SYSTEM_PROMPT + `\\n\\nPENTING: Seluruh teks dalam JSON balasanmu (seperti nama_makanan, deskripsi_singkat, catatan_gizi, bahan_makanan.nama, dll) HARUS dalam bahasa ${lang === 'en' ? 'Inggris (English)' : 'Indonesia'}.`;
 
     const aiPromise = ai.models.generateContent({
-      model: "gemini-3.5-flash",
+      model: "gemini-3.1-flash-lite",
       contents: {
         parts: [
           {
@@ -171,15 +171,15 @@ export const analyzeFoodImage = async (base64Image: string, mimeType: string, la
   } catch (error: any) {
     console.error("Error calling Gemini API:", error);
     if (error.message.includes("Analisis memakan waktu terlalu lama")) {
-        throw error;
+      throw error;
     }
     throw new Error("Gagal menganalisis gambar.");
   }
 };
 
 export const chatWithNara = async (
-  message: string, 
-  history: { role: 'user' | 'model', parts: { text: string }[]}[],
+  message: string,
+  history: { role: 'user' | 'model', parts: { text: string }[] }[],
   userContext: {
     nama: string;
     tujuan: string;
@@ -196,7 +196,7 @@ export const chatWithNara = async (
   }
 ) => {
   const isEn = userContext.language === 'en';
-  
+
   const NARA_SYSTEM_PROMPT = `
 Kamu adalah Nara, AI asisten gizi dari MakanApa.
 
@@ -233,7 +233,7 @@ ${isEn ? "You must respond in English only." : "Kamu harus menjawab dalam Bahasa
 
   try {
     const chatSession = ai.chats.create({
-      model: "gemini-3.5-flash",
+      model: "gemini-3.1-flash-lite",
       config: {
         systemInstruction: NARA_SYSTEM_PROMPT,
         temperature: 0.7,
@@ -250,14 +250,14 @@ ${isEn ? "You must respond in English only." : "Kamu harus menjawab dalam Bahasa
 };
 
 export const preWarmGemini = async () => {
-    try {
-        await ai.models.generateContent({
-            model: "gemini-3.5-flash",
-            contents: { parts: [{ text: "Ping" }] }
-        });
-    } catch (e) {
-        // silently ignore
-    }
+  try {
+    await ai.models.generateContent({
+      model: "gemini-3.1-flash-lite",
+      contents: { parts: [{ text: "Ping" }] }
+    });
+  } catch (e) {
+    // silently ignore
+  }
 };
 
 export const translateUIStrings = async (baseStrings: Record<string, string>, targetLangName: string): Promise<Record<string, string>> => {
@@ -270,12 +270,12 @@ ${JSON.stringify(baseStrings)}`;
 
   try {
     const response = await ai.models.generateContent({
-        model: "gemini-3.5-flash", // Using a fast model for UI translation
-        contents: prompt,
-        config: {
-          responseMimeType: "application/json",
-          temperature: 0.1,
-        }
+      model: "gemini-3.1-flash-lite", // Using a fast model for UI translation
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        temperature: 0.1,
+      }
     });
     const text = response.text;
     if (text) {
@@ -284,7 +284,7 @@ ${JSON.stringify(baseStrings)}`;
   } catch (error) {
     console.error("Gemini translation error:", error);
   }
-  
+
   return baseStrings;
 };
 
@@ -295,7 +295,7 @@ export const generateChatTitle = async (userMessage: string, language: string = 
       : `Buat judul sangat singkat (maksimal 5 kata) yang merangkum pesan chat ini. Kembalikan HANYA teks judulnya, tidak ada yang lain.\n\nPesan: "${userMessage}"`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
+      model: "gemini-3.1-flash-lite",
       contents: prompt,
       config: {
         temperature: 0.3,

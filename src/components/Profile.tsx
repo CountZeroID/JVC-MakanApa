@@ -233,7 +233,7 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
             target_karbo_g: Number(editTargets.karbo),
             target_lemak_g: Number(editTargets.lemak)
         };
-        
+
         // Optimistic UI update
         const prevProfile = profile;
         setProfile(updated);
@@ -258,7 +258,7 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
     const handleSaveAlergi = () => {
         if (!profile) return;
         const updated = { ...profile, alergi: editAlergiConfig };
-        
+
         // Optimistic UI update
         const prevProfile = profile;
         setProfile(updated);
@@ -750,8 +750,8 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
                                     key={opt.id}
                                     onClick={() => setEditProfileData({ ...editProfileData, tujuan: opt.id })}
                                     className={`w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all text-left font-bold ${editProfileData.tujuan === opt.id
-                                            ? 'border-primary bg-primary/5 text-primary'
-                                            : 'border-border bg-bg-card text-text-primary hover:border-primary/30'
+                                        ? 'border-primary bg-primary/5 text-primary'
+                                        : 'border-border bg-bg-card text-text-primary hover:border-primary/30'
                                         }`}
                                 >
                                     <span>{opt.label}</span>
@@ -785,7 +785,7 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
                         </div>
                         <div className="flex items-baseline justify-center gap-2">
                             <span className="text-2xl font-bold text-text-primary">MakanApa</span>
-                            <span className="text-sm font-medium text-primary-light">v1.26</span>
+                            <span className="text-sm font-medium text-primary-light">v1.32</span>
                         </div>
                         <p className="text-sm font-bold text-primary tracking-widest uppercase mb-4 mt-1">Foto. Kenali. Sehat.</p>
                     </div>
@@ -857,8 +857,8 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
                                 key={opt.id}
                                 onClick={() => setTempLang(opt.id)}
                                 className={`w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all text-left font-bold ${tempLang === opt.id
-                                        ? 'border-primary bg-primary/5 text-primary'
-                                        : 'border-border bg-bg-card text-text-primary hover:border-primary/30'
+                                    ? 'border-primary bg-primary/5 text-primary'
+                                    : 'border-border bg-bg-card text-text-primary hover:border-primary/30'
                                     }`}
                             >
                                 <span>{opt.label}</span>
@@ -898,8 +898,8 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
                                 key={opt.id}
                                 onClick={() => setTempUnit(opt.value)}
                                 className={`w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all text-left font-bold ${tempUnit === opt.value
-                                        ? 'border-primary bg-primary/5 text-primary'
-                                        : 'border-border bg-bg-card text-text-primary hover:border-primary/30'
+                                    ? 'border-primary bg-primary/5 text-primary'
+                                    : 'border-border bg-bg-card text-text-primary hover:border-primary/30'
                                     }`}
                             >
                                 <span>{opt.label}</span>
