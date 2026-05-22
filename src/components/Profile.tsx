@@ -140,7 +140,47 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
     };
 
     if (loading) {
-        return <div className="flex justify-center p-8"><div className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin"></div></div>;
+        return (
+            <div className="p-5 space-y-8 animate-pulse pb-20">
+                {/* Identity skeleton */}
+                <div className="flex items-center gap-4 bg-bg-card p-5 rounded-[24px] border border-border">
+                    <div className="w-20 h-20 rounded-full bg-border shrink-0"></div>
+                    <div className="flex-1 space-y-2.5">
+                        <div className="h-6 w-32 bg-border rounded-lg"></div>
+                        <div className="h-5 w-20 bg-border rounded-full"></div>
+                    </div>
+                    <div className="w-10 h-10 rounded-full bg-border shrink-0"></div>
+                </div>
+                {/* Stats row skeleton */}
+                <div className="grid grid-cols-3 gap-3">
+                    <div className="h-20 bg-bg-card border border-border rounded-[20px]"></div>
+                    <div className="h-20 bg-bg-card border border-border rounded-[20px]"></div>
+                    <div className="h-20 bg-bg-card border border-border rounded-[20px]"></div>
+                </div>
+                {/* Target section skeleton */}
+                <div className="bg-bg-card border border-border rounded-[24px] p-5 space-y-4">
+                    <div className="h-5 w-28 bg-border rounded-lg"></div>
+                    <div className="grid grid-cols-4 gap-3">
+                        <div className="h-16 bg-border/50 rounded-xl"></div>
+                        <div className="h-16 bg-border/50 rounded-xl"></div>
+                        <div className="h-16 bg-border/50 rounded-xl"></div>
+                        <div className="h-16 bg-border/50 rounded-xl"></div>
+                    </div>
+                </div>
+                {/* Settings list skeleton */}
+                <div className="bg-bg-card border border-border rounded-[24px] overflow-hidden">
+                    {[...Array(5)].map((_, i) => (
+                        <div key={i} className="flex items-center justify-between p-4 border-b border-border/50 last:border-0">
+                            <div className="flex items-center gap-3">
+                                <div className="w-5 h-5 bg-border rounded"></div>
+                                <div className="h-4 w-24 bg-border rounded-lg"></div>
+                            </div>
+                            <div className="h-4 w-4 bg-border rounded"></div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
     }
 
     if (!profile) return null;

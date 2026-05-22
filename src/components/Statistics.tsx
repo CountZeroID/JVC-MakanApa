@@ -204,8 +204,43 @@ Makanan favorit: ${topFoods.map(f => f.name).join(', ')}
       <h2 className="text-2xl font-extrabold font-heading text-primary mb-6 tracking-tight">{t.statistik_title}</h2>
 
       {loading ? (
-        <div className="flex justify-center p-8">
-            <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+        <div className="space-y-8 animate-pulse pb-20">
+            {/* Weekly summary skeleton */}
+            <section className="space-y-4">
+                <div className="flex items-center justify-between">
+                    <div className="h-5 w-36 bg-border rounded-lg"></div>
+                    <div className="h-4 w-28 bg-border rounded-md"></div>
+                </div>
+                <div className="bg-bg-card p-5 rounded-[24px] border border-border space-y-4">
+                    <div className="flex items-baseline justify-between">
+                        <div className="space-y-2">
+                            <div className="h-3 w-24 bg-border rounded"></div>
+                            <div className="h-8 w-20 bg-border rounded-lg"></div>
+                        </div>
+                        <div className="h-6 w-20 bg-border rounded-lg"></div>
+                    </div>
+                    {/* Chart placeholder */}
+                    <div className="w-full h-40 bg-border/30 rounded-xl flex items-end justify-around px-4 pb-4 gap-2">
+                        {[60, 80, 45, 90, 70, 55, 40].map((h, i) => (
+                            <div key={i} className="flex-1 bg-border rounded-md" style={{ height: `${h}%` }}></div>
+                        ))}
+                    </div>
+                </div>
+                {/* Macro trend skeleton */}
+                <div className="bg-bg-card p-5 rounded-[24px] border border-border space-y-4">
+                    <div className="h-3 w-20 bg-border rounded"></div>
+                    <div className="w-full h-32 bg-border/30 rounded-xl"></div>
+                </div>
+            </section>
+            {/* Insight cards skeleton */}
+            <section className="space-y-4">
+                <div className="h-5 w-28 bg-border rounded-lg"></div>
+                <div className="bg-bg-card p-5 rounded-[24px] border border-border space-y-3">
+                    <div className="h-4 w-full bg-border rounded-lg"></div>
+                    <div className="h-4 w-3/4 bg-border rounded-lg"></div>
+                    <div className="h-4 w-5/6 bg-border rounded-lg"></div>
+                </div>
+            </section>
         </div>
       ) : (
         <div className="space-y-8 animate-in fade-in duration-500 pb-20">

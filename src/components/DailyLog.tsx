@@ -247,8 +247,23 @@ export default function DailyLog({ targetKalori, onOpenNara }: { targetKalori: n
       </div>
 
       {loading ? (
-          <div className="flex justify-center p-8">
-              <div className="animate-spin text-primary"><Flame size={32} /></div>
+          <div className="space-y-6 animate-pulse">
+              {/* Meal section skeletons x3 */}
+              {[...Array(3)].map((_, i) => (
+                  <div key={i} className="space-y-3">
+                      <div className="h-4 w-24 bg-border rounded-lg"></div>
+                      <div className="bg-bg-card border border-border rounded-[20px] p-4 space-y-3">
+                          <div className="flex items-center gap-3">
+                              <div className="w-14 h-14 rounded-2xl bg-border shrink-0"></div>
+                              <div className="flex-1 space-y-2">
+                                  <div className="h-4 w-32 bg-border rounded-lg"></div>
+                                  <div className="h-3 w-20 bg-border rounded"></div>
+                              </div>
+                              <div className="h-5 w-14 bg-border rounded-full"></div>
+                          </div>
+                      </div>
+                  </div>
+              ))}
           </div>
       ) : logs.length === 0 ? (
           <div className="text-center py-12 px-6 flex flex-col items-center">

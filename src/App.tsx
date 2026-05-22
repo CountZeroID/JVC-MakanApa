@@ -189,32 +189,38 @@ export default function App() {
   if (appState === 'loading') {
     return (
       <div className="fixed inset-0 bg-bg-main font-body flex flex-col pointer-events-none">
-        {/* Fake Header Skeleton */}
+        {/* Skeleton Header */}
         <header className="flex items-center justify-between px-6 py-4 bg-bg-card border-b border-border shrink-0 z-10 animate-pulse">
-          <div className="space-y-2">
-            <div className="h-6 w-32 bg-border rounded-md"></div>
-            <div className="h-4 w-24 bg-border rounded-md"></div>
+          <div className="space-y-2.5">
+            <div className="h-6 w-40 bg-border rounded-lg"></div>
+            <div className="h-5 w-28 bg-border rounded-full"></div>
           </div>
-          <div className="h-8 w-20 bg-border rounded-full"></div>
+          <div className="h-8 w-24 bg-border rounded-full"></div>
         </header>
 
-        {/* Fake Main Content Skeleton */}
-        <main className="flex-1 p-6 space-y-6 animate-pulse hidden-scrollbar overflow-hidden">
-            {/* Fake Scanner Box */}
-            <div className="w-full aspect-[4/5] bg-bg-card border border-border rounded-[32px] shadow-sm"></div>
-            <div className="space-y-4">
-               <div className="h-20 w-full bg-bg-card border border-border rounded-[24px]"></div>
-               <div className="h-20 w-full bg-bg-card border border-border rounded-[24px]"></div>
+        {/* Skeleton Main Content — mirrors Scan tab */}
+        <main className="flex-1 p-5 space-y-5 animate-pulse hidden-scrollbar overflow-hidden">
+            {/* Camera placeholder */}
+            <div className="w-full aspect-[4/3] bg-bg-card border border-border rounded-[32px] shadow-sm flex items-center justify-center">
+                <div className="w-16 h-16 rounded-full bg-border"></div>
             </div>
+            {/* Action buttons placeholder */}
+            <div className="flex gap-3">
+                <div className="h-14 flex-1 bg-bg-card border border-border rounded-2xl"></div>
+                <div className="h-14 flex-1 bg-bg-card border border-border rounded-2xl"></div>
+            </div>
+            {/* Card placeholder */}
+            <div className="h-24 w-full bg-bg-card border border-border rounded-[24px]"></div>
         </main>
 
-        {/* Fake Bottom Navigation Skeleton */}
-        <nav className="bg-bg-card border-t border-border px-6 py-4 pb-8 flex justify-between shrink-0 animate-pulse">
-            <div className="w-10 h-10 bg-border rounded-xl"></div>
-            <div className="w-10 h-10 bg-border rounded-xl"></div>
-            <div className="w-14 h-14 bg-border rounded-full -mt-6 border-4 border-bg-main"></div>
-            <div className="w-10 h-10 bg-border rounded-xl"></div>
-            <div className="w-10 h-10 bg-border rounded-xl"></div>
+        {/* Skeleton Bottom Navigation — 6 items matching Scan/Daily/History/Nara/Stats/Profile */}
+        <nav className="min-h-[64px] bg-bg-card border-t border-border flex items-center justify-around px-2 pb-0 shrink-0 animate-pulse pt-1" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+            <div className="flex flex-col items-center gap-1.5 w-16"><div className="w-12 h-8 bg-border rounded-full"></div><div className="h-2 w-6 bg-border rounded"></div></div>
+            <div className="flex flex-col items-center gap-1.5 w-16"><div className="w-12 h-8 bg-border rounded-full"></div><div className="h-2 w-6 bg-border rounded"></div></div>
+            <div className="flex flex-col items-center gap-1.5 w-16"><div className="w-12 h-8 bg-border rounded-full"></div><div className="h-2 w-8 bg-border rounded"></div></div>
+            <div className="flex flex-col items-center gap-1.5 w-16"><div className="w-12 h-8 bg-border rounded-full"></div><div className="h-2 w-6 bg-border rounded"></div></div>
+            <div className="flex flex-col items-center gap-1.5 w-16"><div className="w-12 h-8 bg-border rounded-full"></div><div className="h-2 w-6 bg-border rounded"></div></div>
+            <div className="flex flex-col items-center gap-1.5 w-16"><div className="w-12 h-8 bg-border rounded-full"></div><div className="h-2 w-8 bg-border rounded"></div></div>
         </nav>
       </div>
     );
