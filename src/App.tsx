@@ -166,6 +166,8 @@ export default function App() {
     });
     return () => unsubscribe();
   }, []);
+  const [isNavHovered, setIsNavHovered] = useState(false);
+  const navRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
      if (activeTab === 'nara') {
@@ -173,6 +175,16 @@ export default function App() {
          setShowNaraPulse(false);
      }
   }, [activeTab]);
+
+  useEffect(() => {
+    const handleTouchOutside = (e: TouchEvent) => {
+      if (navRef.current && !navRef.current.contains(e.target as Node)) {
+        setIsNavHovered(false);
+      }
+    };
+    document.addEventListener('touchstart', handleTouchOutside);
+    return () => document.removeEventListener('touchstart', handleTouchOutside);
+  }, []);
 
   const handleOnboardingComplete = (nama: string, targetCal: number) => {
     setUserName(nama);
@@ -291,62 +303,107 @@ export default function App() {
         </main>
 
         {/* Bottom Navigation */}
-        <div className="absolute bottom-6 left-0 right-0 z-50 flex justify-center pointer-events-none px-4">
-          <nav 
-            className="pointer-events-auto min-h-[64px] bg-bg-card/95 backdrop-blur-xl border border-border flex items-center justify-around px-2 shadow-2xl shrink-0 rounded-[28px] max-w-md w-full"
+        <div className="absolute bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none px-4 h-32 items-end pb-6">
+          <motion.div 
+            ref={navRef}
+            className="pointer-events-auto flex items-end justify-center w-full max-w-md h-full relative"
+            onMouseEnter={() => setIsNavHovered(true)}
+            onMouseLeave={() => setIsNavHovered(false)}
+            onTouchStart={() => setIsNavHovered(true)}
           >
-          <NavItem 
-            icon={
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            } 
-            label={t.nav_scan} 
-            isActive={activeTab === 'scan'} 
-            onClick={() => setActiveTab('scan')} 
-          />
-          <NavItem 
-            icon={
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
-            } 
-            label={t.nav_harian} 
-            isActive={activeTab === 'log'} 
-            onClick={() => setActiveTab('log')} 
-          />
-          <NavItem 
-            icon={
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-            } 
-            label={t.nav_history} 
-            isActive={activeTab === 'history'} 
-            onClick={() => setActiveTab('history')} 
-          />
-          <NavItem 
-            icon={
-              <div className="relative">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path><path d="M5 3v4"></path><path d="M19 17v4"></path><path d="M3 5h4"></path><path d="M17 19h4"></path></svg>
-                {showNaraPulse && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[#7B61FF] rounded-full border border-white animate-pulse"></span>}
-              </div>
-            } 
-            label={t.nav_nara} 
-            isActive={activeTab === 'nara'} 
-            onClick={() => setActiveTab('nara')} 
-          />
-          <NavItem 
-            icon={
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-            } 
-            label={t.nav_statistik} 
-            isActive={activeTab === 'stats'} 
-            onClick={() => setActiveTab('stats')} 
-          />
-          <NavItem 
-            icon={
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-            } 
-            label={t.nav_profil} 
-            isActive={activeTab === 'profile'} 
-            onClick={() => setActiveTab('profile')} 
-          />
-          </nav>
+            <motion.nav 
+              initial={false}
+              animate={{
+                  width: isNavHovered ? '100%' : '108px',
+                  height: isNavHovered ? '64px' : '20px',
+                  borderRadius: isNavHovered ? 32 : 24,
+                  opacity: isNavHovered ? 1 : 0.9,
+                  y: isNavHovered ? 0 : 8
+              }}
+              transition={{ type: "spring", damping: 22, stiffness: 300 }}
+              className="bg-bg-card/95 backdrop-blur-xl border border-border shadow-[0_8px_30px_rgba(0,0,0,0.12)] shrink-0 overflow-hidden relative flex justify-center items-center"
+            >
+              {/* Shrunk State: 6 Dots Indicator */}
+              <motion.div
+                initial={false}
+                animate={{ 
+                  opacity: isNavHovered ? 0 : 1, 
+                  scale: isNavHovered ? 0.8 : 1 
+                }}
+                transition={{ duration: 0.2 }}
+                className="absolute inset-0 flex items-center justify-center gap-2 pointer-events-none"
+              >
+                  {['scan', 'log', 'history', 'nara', 'stats', 'profile'].map((tab, i) => (
+                      <div key={i} className={cn(
+                          "w-[6px] h-[6px] rounded-full transition-all duration-300",
+                          activeTab === tab ? "bg-primary scale-[1.3]" : "bg-text-muted/30"
+                      )}></div>
+                  ))}
+              </motion.div>
+              <motion.div
+                initial={false}
+                animate={{ 
+                  opacity: isNavHovered ? 1 : 0, 
+                  scale: isNavHovered ? 1 : 0.8 
+                }}
+                transition={{ duration: 0.2 }}
+                className="absolute inset-0 flex items-center justify-around px-2 min-w-[320px]"
+                style={{ pointerEvents: isNavHovered ? 'auto' : 'none' }}
+              >
+                <NavItem 
+                  icon={
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                  } 
+                  label={t.nav_scan} 
+                  isActive={activeTab === 'scan'} 
+                  onClick={() => setActiveTab('scan')} 
+                />
+                <NavItem 
+                  icon={
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                  } 
+                  label={t.nav_harian} 
+                  isActive={activeTab === 'log'} 
+                  onClick={() => setActiveTab('log')} 
+                />
+                <NavItem 
+                  icon={
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                  } 
+                  label={t.nav_history} 
+                  isActive={activeTab === 'history'} 
+                  onClick={() => setActiveTab('history')} 
+                />
+                <NavItem 
+                  icon={
+                    <div className="relative">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path><path d="M5 3v4"></path><path d="M19 17v4"></path><path d="M3 5h4"></path><path d="M17 19h4"></path></svg>
+                      {showNaraPulse && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[#7B61FF] rounded-full border border-white animate-pulse"></span>}
+                    </div>
+                  } 
+                  label={t.nav_nara} 
+                  isActive={activeTab === 'nara'} 
+                  onClick={() => setActiveTab('nara')} 
+                />
+                <NavItem 
+                  icon={
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                  } 
+                  label={t.nav_statistik} 
+                  isActive={activeTab === 'stats'} 
+                  onClick={() => setActiveTab('stats')} 
+                />
+                <NavItem 
+                  icon={
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                  } 
+                  label={t.nav_profil} 
+                  isActive={activeTab === 'profile'} 
+                  onClick={() => setActiveTab('profile')} 
+                />
+              </motion.div>
+            </motion.nav>
+          </motion.div>
         </div>
       </div>
     </div>
