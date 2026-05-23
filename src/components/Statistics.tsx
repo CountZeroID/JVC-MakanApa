@@ -372,9 +372,9 @@ Makanan favorit: ${topFoods.map(f => f.name).join(', ')}
                     <p className="text-[10px] text-text-secondary font-bold uppercase tracking-widest mb-4">{t.rata_rata_vitamin}</p>
                     <div className="space-y-3">
                         {[
-                            { label: 'Kalsium', val: vitamins.kalsium_mg, akg: 1000, unit: 'mg', icon: '🥛' },
-                            { label: 'Zat Besi', val: vitamins.zat_besi_mg, akg: 18, unit: 'mg', icon: '🥩' },
-                            { label: 'Vit C', val: vitamins.vitamin_c_mg, akg: 90, unit: 'mg', icon: '🍊' },
+                            { label: t.label_kalsium || 'Kalsium', val: vitamins.kalsium_mg, akg: 1000, unit: 'mg', icon: '🥛' },
+                            { label: t.label_zat_besi || 'Zat Besi', val: vitamins.zat_besi_mg, akg: 18, unit: 'mg', icon: '🥩' },
+                            { label: t.label_vit_c || 'Vit C', val: vitamins.vitamin_c_mg, akg: 90, unit: 'mg', icon: '🍊' },
                         ].map((v, i) => {
                             const perc = Math.min(100, (v.val / v.akg) * 100);
                             return (

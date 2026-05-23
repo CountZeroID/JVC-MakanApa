@@ -42,7 +42,7 @@ export default function BottomSheet({ isOpen, onClose, children, title }: Bottom
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="fixed inset-0 z-[100] flex items-end bg-black/40 backdrop-blur-sm"
+                    className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm sm:p-4"
                     onClick={onClose}
                 >
                     <motion.div 
@@ -50,7 +50,7 @@ export default function BottomSheet({ isOpen, onClose, children, title }: Bottom
                         animate={{ y: isDragging ? translateY : 0 }}
                         exit={{ y: "100%" }}
                         transition={isDragging ? { type: "tween", duration: 0 } : { type: "spring", damping: 30, stiffness: 350 }}
-                        className="bg-bg-card w-full rounded-t-[32px] shadow-2xl border-t border-border flex flex-col max-h-[92dvh]"
+                        className="bg-bg-card w-full max-w-md rounded-t-[32px] sm:rounded-[32px] shadow-2xl border-t sm:border border-border flex flex-col max-h-[92dvh]"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div 

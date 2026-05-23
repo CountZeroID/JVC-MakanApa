@@ -275,7 +275,7 @@ export default function App() {
         {/* Main Content Area */}
         <main className={cn(
           "flex-1 relative hidden-scrollbar",
-          activeTab === 'nara' ? "overflow-hidden" : "overflow-y-auto pb-20"
+          activeTab === 'nara' ? "overflow-hidden" : "overflow-y-auto pb-28"
         )}>
           {activeTab === 'scan' && <HomeScanner onSaveSuccess={() => { setActiveTab('log'); }} />}
           {activeTab === 'log' && <DailyLog targetKalori={targetKalori} onOpenNara={handleOpenNara} />}
@@ -291,10 +291,10 @@ export default function App() {
         </main>
 
         {/* Bottom Navigation */}
-        <nav 
-          className="min-h-[64px] bg-bg-card border-t border-border flex items-center justify-around px-2 pb-0 shadow-[0_-2px_20px_rgba(0,0,0,0.08)] shrink-0 z-50 pt-1"
-          style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
-        >
+        <div className="absolute bottom-6 left-0 right-0 z-50 flex justify-center pointer-events-none px-4">
+          <nav 
+            className="pointer-events-auto min-h-[64px] bg-bg-card/95 backdrop-blur-xl border border-border flex items-center justify-around px-2 shadow-2xl shrink-0 rounded-[28px] max-w-md w-full"
+          >
           <NavItem 
             icon={
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
@@ -346,7 +346,8 @@ export default function App() {
             isActive={activeTab === 'profile'} 
             onClick={() => setActiveTab('profile')} 
           />
-        </nav>
+          </nav>
+        </div>
       </div>
     </div>
   );

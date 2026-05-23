@@ -590,7 +590,7 @@ export default function Profile({ streak = 0, onTargetUpdated, onOpenNara }: { s
                 </div>
                 <div className="flex items-baseline justify-center gap-2">
                     <span className="text-2xl font-bold text-text-primary">MakanApa</span>
-                    <span className="text-sm font-medium text-primary-light">v1.26</span>
+                    <span className="text-sm font-medium text-primary-light">v1.39</span>
                 </div>
                 <p className="text-sm text-text-muted font-medium mb-4 mt-1">Foto. Kenali. Sehat.</p>
 

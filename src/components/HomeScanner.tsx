@@ -175,13 +175,16 @@ export default function HomeScanner({ onSaveSuccess }: { onSaveSuccess: () => vo
           }
       });
 
-      const docId = await saveFoodLog(payload);
-
-      if (imagePreview && docId) {
-          uploadFoodImage(imagePreview).then(url => {
-              if (url) updateFoodLogImage(docId, url);
-          }).catch(console.error);
+      if (imagePreview) {
+          try {
+              const url = await uploadFoodImage(imagePreview);
+              if (url) payload.imageUrl = url;
+          } catch (error) {
+              console.error("Gagal upload gambar:", error);
+          }
       }
+
+      await saveFoodLog(payload);
 
       setShowSaveSheet(false);
       onSaveSuccess();
@@ -234,8 +237,8 @@ export default function HomeScanner({ onSaveSuccess }: { onSaveSuccess: () => vo
       )}
 
       {imagePreview && (
-        <div className="space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="w-full aspect-[4/3] md:max-h-[400px] xl:max-h-[450px] rounded-[24px] overflow-hidden shadow-sm relative group bg-border flex items-center justify-center">
+        <div className="flex flex-col md:flex-row gap-5 animate-in fade-in slide-in-from-bottom-4 duration-500 items-start">
+            <div className="w-full md:w-1/2 aspect-[4/3] md:aspect-square md:max-h-[500px] xl:max-h-[600px] rounded-[24px] overflow-hidden shadow-sm relative group bg-border flex items-center justify-center shrink-0">
                 <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
                 
                 <div className="absolute top-3 left-3 bg-primary text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 shadow-lg">
@@ -267,6 +270,7 @@ export default function HomeScanner({ onSaveSuccess }: { onSaveSuccess: () => vo
                 )}
             </div>
 
+            <div className="w-full md:w-1/2 flex flex-col space-y-5">
             {isAnalyzing && (
                 <div className="bg-bg-card rounded-[24px] p-6 shadow-[0_2px_16px_rgba(0,0,0,0.06)] border border-border flex flex-col gap-4 relative overflow-hidden">
                     <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent animate-pulse"></div>
@@ -513,6 +517,7 @@ export default function HomeScanner({ onSaveSuccess }: { onSaveSuccess: () => vo
                   </div>
                 </div>
             )}
+            </div>
         </div>
       )}
 
@@ -555,7 +560,7 @@ export default function HomeScanner({ onSaveSuccess }: { onSaveSuccess: () => vo
           <div className="space-y-3 mb-4">
               <button 
                   onClick={() => cameraInputRef.current?.click()}
-                  className="w-full bg-bg-main border border-border/60 p-4 rounded-[20px] flex items-center justify-between text-left hover:border-primary/40 focus:border-primary/40 active:bg-primary/5 transition-all group"
+                  className="w-full max-w-sm mx-auto bg-bg-main border border-border/60 p-4 rounded-[20px] flex items-center justify-between text-left hover:border-primary/40 focus:border-primary/40 active:bg-primary/5 transition-all group"
               >
                   <div className="flex items-center gap-4">
                       <div className="w-12 h-12 bg-bg-card rounded-full shadow-sm flex items-center justify-center text-primary group-hover:bg-primary/10 group-focus:bg-primary/10 transition-colors">
@@ -570,7 +575,7 @@ export default function HomeScanner({ onSaveSuccess }: { onSaveSuccess: () => vo
 
               <button 
                   onClick={() => galleryInputRef.current?.click()}
-                  className="w-full bg-bg-main border border-border/60 p-4 rounded-[20px] flex items-center justify-between text-left hover:border-primary/40 focus:border-primary/40 active:bg-primary/5 transition-all group"
+                  className="w-full max-w-sm mx-auto bg-bg-main border border-border/60 p-4 rounded-[20px] flex items-center justify-between text-left hover:border-primary/40 focus:border-primary/40 active:bg-primary/5 transition-all group"
               >
                   <div className="flex items-center gap-4">
                       <div className="w-12 h-12 bg-bg-card rounded-full shadow-sm flex items-center justify-center text-primary group-hover:bg-primary/10 group-focus:bg-primary/10 transition-colors">
@@ -595,7 +600,7 @@ function MealTypeBtn({ icon, label, isSuggested, onClick, t }: { icon: string, l
         <button 
             onClick={onClick}
             className={cn(
-                "flex items-center justify-between px-4 h-[64px] rounded-[20px] transition-all w-full relative group border-2",
+                "flex items-center justify-between px-4 h-[64px] rounded-[20px] transition-all w-full max-w-sm mx-auto relative group border-2",
                 isSuggested 
                     ? "border-primary bg-primary/5 shadow-sm" 
                     : "bg-bg-main border-border hover:border-primary-light hover:bg-primary-light/5"
