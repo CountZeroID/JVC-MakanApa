@@ -1,62 +1,75 @@
-# 🥗 MakanApa - AI Nutrition Tracker
+# MakanApa (Juara Vibe Coding) 🍽️
 
-**MakanApa** adalah aplikasi pelacak nutrisi harian cerdas yang ditenagai oleh **Google Gemini AI**. Cukup foto makananmu, dan biarkan AI mengenali kandungan gizi dan kalorinya secara instan!
+**MakanApa** adalah aplikasi web modern berbasis *Progressive Web App* (PWA) untuk melacak asupan nutrisi dan kalori harian secara pintar. Aplikasi ini menggunakan teknologi *Artificial Intelligence* (AI) dari Google Gemini untuk memindai foto makanan dan secara otomatis memperkirakan jumlah kalori, protein, karbohidrat, dan lemak di dalamnya. 
 
-Proyek ini dibangun secara khusus untuk diikutsertakan dalam kompetisi **Juara Vibe Coding** yang diselenggarakan oleh **Google for Developers**.
+Aplikasi ini dirancang khusus untuk membantu pengguna mencapai *body goals* mereka (Diet, Maintenance, atau Bulking) dengan cara yang sangat praktis dan menyenangkan.
 
 ---
 
 ## ✨ Fitur Utama
 
-- **🤖 AI Food Scanner**: Mengenali makanan dari foto dan memperkirakan jumlah kalori, protein, lemak, dan karbohidrat secara _real-time_ menggunakan **Google Gemini**.
-- **🔐 Firebase Auth**: Sistem login aman dan cepat menggunakan Google, Email, Nomor HP (OTP), atau mode Tamu (Guest).
-- **☁️ Cloud Firestore**: Data nutrisi harian tersimpan dengan aman di _cloud_ dan tersinkronisasi di semua perangkatmu.
-- **🌍 Bilingual Support**: Mendukung Bahasa Indonesia dan Bahasa Inggris.
-- **🚀 Cloud-Native**: Dikemas menggunakan Docker dan di-deploy ke **Google Cloud Run** untuk skalabilitas maksimal.
+1. **Pemindai Makanan AI (AI Food Scanner)** 📸
+   Unggah atau ambil foto makananmu, dan AI akan menganalisis nama makanan, takaran porsi, dan kandungan gizinya secara otomatis tanpa perlu *input* manual.
+   
+2. **Nara - Asisten Gizi AI** ✨
+   Chatbot cerdas bernama Nara yang siap membantumu merencanakan menu makan, memberikan rekomendasi nutrisi sesuai tujuanmu, dan menjawab pertanyaan seputar diet. Nara memiliki memori dan memahami riwayat makanmu hari ini.
+
+3. **Kalkulator BMR & Target Makro Dinamis** ⚖️
+   Sistem otomatis menghitung kebutuhan kalori harian (BMR) dan rasio makronutrien (Protein, Karbo, Lemak) berdasarkan profil tubuh (usia, berat, tinggi, gender) dan tujuan (*diet/maintenance/bulking*).
+
+4. **Statistik & Visualisasi Data** 📊
+   Lacak progres harian, mingguan, dan bulanan melalui grafik interaktif yang indah, dilengkapi pelacakan status "Api Hari" (*Streak*) untuk menjaga motivasimu.
+
+5. **Autentikasi Multi-Metode** 🔐
+   Mendukung pendaftaran dan *login* aman menggunakan:
+   * Google Sign-In (Dioptimalkan untuk *Desktop* dan *Mobile*).
+   * Email & Password.
+   * Nomor Handphone (OTP via Firebase).
+
+6. **Lokalisasi (Bilingual)** 🌐
+   Mendukung Bahasa Indonesia dan Bahasa Inggris untuk menjangkau pengguna yang lebih luas.
 
 ---
 
-## 🛠️ Teknologi yang Digunakan
+## 🛠️ Teknologi yang Digunakan (*Tech Stack*)
 
-- **Frontend**: React 18, Vite, Tailwind CSS v4, TypeScript
-- **AI & ML**: Google Gemini API
-- **Backend/BaaS**: Google Firebase (Authentication & Cloud Firestore)
-- **Deployment**: Google Cloud Run, Cloud Build, Docker, NGINX
+* **Frontend:** React 19, TypeScript, Vite
+* **Styling & Animasi:** Tailwind CSS v4, Framer Motion, Lucide React
+* **Backend & Database:** Firebase (Authentication, Cloud Firestore, Cloud Storage)
+* **Artificial Intelligence:** Google Gemini API (`@google/genai` v1.29)
+* **Visualisasi Data:** Recharts
 
 ---
 
-## 💻 Cara Menjalankan di Laptop Sendiri (Local Development)
+## 📂 Struktur Direktori (*Codebase*)
 
-### Prasyarat
+```text
+makanapa/
+├── src/
+│   ├── components/       # Komponen UI React (HomeScanner, DailyLog, NaraChat, dll)
+│   ├── contexts/         # React Context untuk state global (SettingsContext)
+│   ├── hooks/            # Custom hooks (useTranslation, useUnits)
+│   ├── lib/              # Konfigurasi external API (firebase.ts, gemini.ts, utils.ts)
+│   ├── App.tsx           # Entry point utama aplikasi & manajemen navigasi tab
+│   └── index.css         # Styling global & Tailwind CSS variables
+├── package.json          # Konfigurasi dependensi NPM
+└── vite.config.ts        # Konfigurasi *bundler* Vite
+```
 
-- Node.js (versi 18 atau terbaru)
-- Akun Google Cloud / Google AI Studio untuk mendapatkan API Key
-- Akun Firebase untuk mengonfigurasi `firebase.ts`
+---
 
-### Instalasi
+## 🚀 Cara Menjalankan Secara Lokal (*Development*)
 
-1. **Clone repository ini**
-
-   ```bash
-   git clone https://github.com/CountZeroID/JVC-MakanApa
-   cd makanapa
-   ```
-
-2. **Install dependencies**
-
+1. **Clone & Install Dependensi**
+   Buka terminal di direktori proyek dan jalankan:
    ```bash
    npm install
    ```
 
-3. **Atur Environment Variables**
-   Buat file `.env` di dalam folder utama proyek dan masukkan API Key Gemini kamu:
+2. **Konfigurasi Environment**
+   Kamu wajib memiliki API Key untuk Firebase dan Gemini. Tambahkan kunci tersebut ke dalam kode atau konfigurasi Firebase-mu (terdapat pada `src/lib/firebase.ts` dan `src/lib/gemini.ts`).
 
-   ```env
-   GEMINI_API_KEY="ISI_DENGAN_API_KEY_GEMINI_KAMU"
-   APP_URL="http://localhost:3000"
-   ```
-
-4. **Jalankan Aplikasi**
+3. **Jalankan Development Server**
    ```bash
    npm run dev
    ```
@@ -64,4 +77,8 @@ Proyek ini dibangun secara khusus untuk diikutsertakan dalam kompetisi **Juara V
 
 ---
 
-#JuaraVibeCoding
+## 📝 Catatan Penting
+* Aplikasi ini sangat berfokus pada UI/UX yang dinamis (Mode Gelap/Terang) dan performa yang ringan. 
+* Pastikan *Domain* tempat aplikasi ini berjalan sudah didaftarkan pada *Authorized Domains* di Firebase Console untuk menghindari error saat autentikasi.
+
+*Dibuat untuk event Juara Vibe Coding.* 🚀
