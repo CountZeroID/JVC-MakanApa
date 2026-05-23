@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Flame } from 'lucide-react';
 import HomeScanner from './components/HomeScanner';
 import DailyLog from './components/DailyLog';
