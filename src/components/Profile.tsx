@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { UserProfile, getUserProfile, saveUserProfile, getLogsForDateRange, logoutUser, deleteAccount, uploadProfileImage, auth } from '../lib/firebase';
+import { GoogleAuthProvider, reauthenticateWithPopup, reauthenticateWithRedirect, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import { Edit2, LogOut, ChevronRight, Calculator, Bell, Globe, Moon, Scale, Info, Check, ImagePlus, Camera, UserPlus, Trash2, Shield } from 'lucide-react';
 import BottomSheet from './BottomSheet';
 import Toast, { ToastType } from './shared/Toast';
@@ -83,7 +84,6 @@ export default function Profile({ streak = 0, onTargetUpdated, onOpenNara }: { s
             setTotalMeals(logs.length);
 
             // Replaced by global streak prop to save Firestore reads
-            setLoading(false);
             setLoading(false);
         };
         fetchProfileData();
@@ -182,7 +182,63 @@ export default function Profile({ streak = 0, onTargetUpdated, onOpenNara }: { s
             window.location.reload();
         } catch (err: any) {
             if (err.code === 'auth/requires-recent-login') {
-                alert("Aksi ini memerlukan login ulang untuk alasan keamanan. Silakan logout dan login kembali lalu coba lagi.");
+                const user = auth.currentUser;
+                if (user) {
+                    const isGoogle = user.providerData.some(p => p.providerId === 'google.com');
+                    if (isGoogle) {
+                        const confirmReauth = window.confirm(
+                            settings.language === 'en'
+                                ? "For security reasons, please verify your Google account to confirm deletion. Click OK to proceed."
+                                : "Untuk alasan keamanan, silakan verifikasi login Google Anda untuk mengonfirmasi penghapusan. Klik OK untuk melanjutkan."
+                        );
+                        if (confirmReauth) {
+                            try {
+                                const provider = new GoogleAuthProvider();
+                                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                                if (isMobile) {
+                                    await reauthenticateWithRedirect(user, provider);
+                                    return;
+                                } else {
+                                    await reauthenticateWithPopup(user, provider);
+                                    await deleteAccount();
+                                    localStorage.clear();
+                                    sessionStorage.clear();
+                                    window.location.reload();
+                                    return;
+                                }
+                            } catch (reauthErr: any) {
+                                alert(
+                                    settings.language === 'en'
+                                        ? "Re-authentication failed: " + reauthErr.message
+                                        : "Gagal verifikasi ulang: " + reauthErr.message
+                                );
+                            }
+                        }
+                    } else {
+                        const password = prompt(
+                            settings.language === 'en'
+                                ? "For security reasons, please enter your password to confirm account deletion:"
+                                : "Untuk alasan keamanan, masukkan kata sandi akun Anda untuk mengonfirmasi penghapusan akun:"
+                        );
+                        if (password) {
+                            try {
+                                const credential = EmailAuthProvider.credential(user.email!, password);
+                                await reauthenticateWithCredential(user, credential);
+                                await deleteAccount();
+                                localStorage.clear();
+                                sessionStorage.clear();
+                                window.location.reload();
+                                return;
+                            } catch (reauthErr: any) {
+                                alert(
+                                    settings.language === 'en'
+                                        ? "Incorrect password or re-authentication failed."
+                                        : "Kata sandi salah atau gagal verifikasi ulang."
+                                );
+                            }
+                        }
+                    }
+                }
             } else {
                 alert("Terjadi kesalahan: " + err.message);
             }
