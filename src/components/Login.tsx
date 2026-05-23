@@ -30,10 +30,18 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     }, []);
 
     useEffect(() => {
-        if (mode === 'phone' && !window.recaptchaVerifier) {
-            window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-                'size': 'invisible'
-            });
+        if (mode === 'phone') {
+            if (window.recaptchaVerifier) {
+                try { window.recaptchaVerifier.clear(); } catch (e) {}
+                window.recaptchaVerifier = null;
+            }
+            try {
+                window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+                    'size': 'invisible'
+                });
+            } catch (e) {
+                console.error("Recaptcha error:", e);
+            }
         }
     }, [mode]);
 
@@ -69,7 +77,12 @@ export default function Login({ onLoginSuccess }: LoginProps) {
             }
             onLoginSuccess();
         } catch (err: any) {
-            setError(err.message);
+            let msg = err.message;
+            if (err.code === 'auth/email-already-in-use') msg = 'Email sudah terdaftar. Silakan pindah ke mode Masuk.';
+            else if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') msg = 'Email atau password salah.';
+            else if (err.code === 'auth/weak-password') msg = 'Password terlalu lemah (minimal 6 karakter).';
+            else if (err.code === 'auth/invalid-email') msg = 'Format email tidak valid.';
+            setError(msg);
             setLoadingMethod(null);
         }
     };
@@ -84,12 +97,17 @@ export default function Login({ onLoginSuccess }: LoginProps) {
             const confirmation = await signInWithPhoneNumber(auth, phone, appVerifier);
             setConfirmationResult(confirmation);
         } catch (err: any) {
-            setError(err.message);
+            let msg = err.message;
+            if (err.code === 'auth/invalid-phone-number') msg = 'Nomor HP tidak valid. Gunakan format internasional (+62...).';
+            else if (err.code === 'auth/too-many-requests') msg = 'Terlalu banyak percobaan kode OTP. Silakan coba lagi nanti.';
+            setError(msg);
             // Reset reCAPTCHA on error
             if (window.recaptchaVerifier) {
-                window.recaptchaVerifier.render().then((widgetId: any) => {
-                    grecaptcha.reset(widgetId);
-                });
+                try {
+                    window.recaptchaVerifier.render().then((widgetId: any) => {
+                        if (typeof grecaptcha !== 'undefined') grecaptcha.reset(widgetId);
+                    }).catch(() => {});
+                } catch(e) {}
             }
         } finally {
             setLoadingMethod(null);
