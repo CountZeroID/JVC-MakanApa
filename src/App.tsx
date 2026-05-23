@@ -256,8 +256,9 @@ export default function App() {
         </AnimatePresence>
 
         {/* Header */}
-        <header className="flex items-center justify-between px-6 py-4 bg-bg-card border-b border-border shrink-0 z-10">
-          <div>
+        <div className={cn("shrink-0 z-10 transition-all overflow-hidden", activeTab === 'nara' ? "h-0" : "h-auto border-b border-border")}>
+          <header className="flex items-center justify-between px-6 py-4 bg-bg-card">
+            <div>
             <h1 className="text-primary text-2xl font-extrabold tracking-tight leading-none font-heading mb-1.5">{t.greeting}, {userName}! 👋</h1>
             <div className="inline-flex items-center gap-1.5 bg-primary/10 px-2.5 py-1 rounded-full border border-primary/20">
                <span className="text-xs">🔥</span>
@@ -268,7 +269,8 @@ export default function App() {
             <Flame size={14} className="text-accent" />
             <span className="text-accent font-bold text-xs tracking-tight">{streak} {t.hari_streak}</span>
           </div>
-        </header>
+          </header>
+        </div>
 
         {/* Main Content Area */}
         <main className={cn(
@@ -278,9 +280,14 @@ export default function App() {
           {activeTab === 'scan' && <HomeScanner onSaveSuccess={() => { setActiveTab('log'); }} />}
           {activeTab === 'log' && <DailyLog targetKalori={targetKalori} onOpenNara={handleOpenNara} />}
           {activeTab === 'history' && <HistoryLog targetKalori={targetKalori} />}
-          {activeTab === 'nara' && <NaraChat />}
+          
+          {/* Keep NaraChat mounted to prevent session loss, but hide visually */}
+          <div className={cn("h-full w-full", activeTab === 'nara' ? "block" : "hidden")}>
+            <NaraChat />
+          </div>
+
           {activeTab === 'stats' && <Statistics targetKalori={targetKalori} />}
-          {activeTab === 'profile' && <Profile onTargetUpdated={setTargetKalori} onOpenNara={() => setActiveTab('nara')} />}
+          {activeTab === 'profile' && <Profile streak={streak} onTargetUpdated={setTargetKalori} onOpenNara={() => setActiveTab('nara')} />}
         </main>
 
         {/* Bottom Navigation */}

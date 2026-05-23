@@ -9,10 +9,9 @@ import { useSettings } from '../contexts/SettingsContext';
 import { useTranslation } from '../hooks/useTranslation';
 import { useUnits } from '../hooks/useUnits';
 
-export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdated?: (val: number) => void, onOpenNara?: () => void }) {
+export default function Profile({ streak = 0, onTargetUpdated, onOpenNara }: { streak?: number, onTargetUpdated?: (val: number) => void, onOpenNara?: () => void }) {
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState(true);
-    const [streaks, setStreaks] = useState({ current: 0 });
     const [totalMeals, setTotalMeals] = useState(0);
     const [toast, setToast] = useState<{ message: string, type: ToastType } | null>(null);
 
@@ -83,28 +82,8 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
             const logs = await getLogsForDateRange(startDate, endDate);
             setTotalMeals(logs.length);
 
-            // basic streak calc
-            const loggedDates = [...new Set(logs.map(l => l.date_key))].sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
-            let current = 0;
-            const today = new Date();
-            if (loggedDates.length > 0) {
-                const diffToday = Math.floor((today.getTime() - new Date(loggedDates[0]).getTime()) / (1000 * 3600 * 24));
-                if (diffToday <= 1) {
-                    current = 1;
-                    let checkDate = new Date(loggedDates[0]);
-                    for (let i = 1; i < loggedDates.length; i++) {
-                        const nextD = new Date(loggedDates[i]);
-                        const diff = Math.floor((checkDate.getTime() - nextD.getTime()) / (1000 * 3600 * 24));
-                        if (diff === 1) {
-                            current++;
-                            checkDate = nextD;
-                        } else {
-                            break;
-                        }
-                    }
-                }
-            }
-            setStreaks({ current });
+            // Replaced by global streak prop to save Firestore reads
+            setLoading(false);
             setLoading(false);
         };
         fetchProfileData();
@@ -394,7 +373,7 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
                 <div className="snap-center shrink-0 w-[140px] p-4 rounded-[20px] bg-bg-card border border-border shadow-sm flex flex-col gap-1">
                     <span className="text-2xl mb-1">🔥</span>
                     <p className="text-[10px] text-text-secondary font-bold uppercase tracking-widest">{t.label_streak}</p>
-                    <p className="text-2xl font-black font-mono text-primary leading-none">{streaks.current}</p>
+                    <p className="text-2xl font-black font-mono text-primary leading-none">{streak}</p>
                 </div>
                 <div className="snap-center shrink-0 w-[140px] p-4 rounded-[20px] bg-bg-card border border-border shadow-sm flex flex-col gap-1">
                     <span className="text-2xl mb-1">📊</span>
@@ -785,7 +764,7 @@ export default function Profile({ onTargetUpdated, onOpenNara }: { onTargetUpdat
                         </div>
                         <div className="flex items-baseline justify-center gap-2">
                             <span className="text-2xl font-bold text-text-primary">MakanApa</span>
-                            <span className="text-sm font-medium text-primary-light">v1.32</span>
+                            <span className="text-sm font-medium text-primary-light">v1.34</span>
                         </div>
                         <p className="text-sm font-bold text-primary tracking-widest uppercase mb-4 mt-1">Foto. Kenali. Sehat.</p>
                     </div>

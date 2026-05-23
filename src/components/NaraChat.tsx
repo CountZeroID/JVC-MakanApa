@@ -60,9 +60,8 @@ export default function NaraChat() {
     const startNewSession = async () => {
         if (!auth.currentUser) return;
         try {
-            const newTitle = settings.language === 'en' ? 'New Chat' : 'Chat Baru';
-            const sessionId = await createNaraSession(newTitle);
-            setCurrentSessionId(sessionId);
+            const tempSessionId = 'temp_' + Date.now();
+            setCurrentSessionId(tempSessionId);
             setMessages([]);
             setPendingGreeting(null);
             setIsNewSession(true);
@@ -70,7 +69,7 @@ export default function NaraChat() {
             titleGeneratedRef.current = false;
             
             // Generate greeting for new session
-            generateGreeting(sessionId);
+            generateGreeting(tempSessionId);
         } catch (e) {
             console.error("Error creating session:", e);
         }
@@ -212,12 +211,20 @@ export default function NaraChat() {
         setIsLoading(true);
 
         try {
+            let actualSessionId = currentSessionId;
+            
+            if (isNewSession) {
+                const newTitle = settings.language === 'en' ? 'New Chat' : 'Chat Baru';
+                actualSessionId = await createNaraSession(newTitle);
+                setCurrentSessionId(actualSessionId);
+            }
+
             // Save greeting first if exists (first interaction in session)
             if (isNewSession && pendingGreeting) {
                 await saveNaraChat({
                      role: 'model',
                      text: pendingGreeting,
-                     session_id: currentSessionId
+                     session_id: actualSessionId
                 });
                 setPendingGreeting(null);
                 setIsNewSession(false);
@@ -227,14 +234,14 @@ export default function NaraChat() {
             await saveNaraChat({
                 role: 'user',
                 text: userMsg,
-                session_id: currentSessionId
+                session_id: actualSessionId
             });
 
             // Generate title from first user message (background, don't block)
             if (!titleGeneratedRef.current) {
                 titleGeneratedRef.current = true;
                 generateChatTitle(userMsg, settings.language).then(title => {
-                    updateSessionTitle(currentSessionId, title);
+                    updateSessionTitle(actualSessionId, title);
                 }).catch(console.error);
             }
 
@@ -253,7 +260,7 @@ export default function NaraChat() {
             await saveNaraChat({
                 role: 'model',
                 text: response,
-                session_id: currentSessionId
+                session_id: actualSessionId
             });
         } catch (error) {
             console.error(error);
@@ -261,7 +268,7 @@ export default function NaraChat() {
                 role: 'model',
                 text: t.nara_error,
                 session_id: currentSessionId
-            });
+            }).catch(() => {});
         } finally {
             setIsLoading(false);
         }

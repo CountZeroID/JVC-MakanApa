@@ -283,7 +283,7 @@ Makanan favorit: ${topFoods.map(f => f.name).join(', ')}
                                     content={({ active, payload }) => {
                                         if (active && payload && payload.length) {
                                             return (
-                                                <div className="bg-text-primary text-white text-[10px] font-bold px-2 py-1 rounded shadow-md">
+                                                <div className="bg-bg-card border border-border text-text-primary text-[10px] font-bold px-2 py-1 rounded shadow-md">
                                                     {payload[0].value} kkal
                                                 </div>
                                             );
@@ -313,7 +313,7 @@ Makanan favorit: ${topFoods.map(f => f.name).join(', ')}
                                     content={({ active, payload }) => {
                                         if (active && payload && payload.length) {
                                             return (
-                                                <div className="bg-white border border-border shadow-md rounded-lg p-2 text-[10px] font-bold">
+                                                <div className="bg-bg-card border border-border shadow-md rounded-lg p-2 text-[10px] font-bold">
                                                     <div className="text-warning">{t.label_karbo}: {payload[0].value}{unitLabel.gram}</div>
                                                     <div className="text-success">{t.label_protein}: {payload[1].value}{unitLabel.gram}</div>
                                                     <div className="text-error">{t.label_lemak}: {payload[2].value}{unitLabel.gram}</div>
