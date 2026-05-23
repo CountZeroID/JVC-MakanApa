@@ -116,9 +116,10 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
 
   return (
     <div className="fixed inset-0 z-50 bg-bg-main overflow-y-auto">
-      <div className="h-full flex flex-col max-w-lg mx-auto bg-white min-h-screen relative shadow-2xl">
+      <div className="h-full flex flex-col w-full bg-bg-main min-h-screen relative">
         {/* Progress header */}
-        <div className="absolute top-0 inset-x-0 p-6 flex justify-between items-center z-10">
+        <div className="absolute top-0 inset-x-0 p-6 z-10">
+          <div className="max-w-2xl mx-auto w-full flex justify-between items-center">
             <div className="flex gap-2">
                 {[1, 2, 3].map(i => (
                     <div 
@@ -131,9 +132,10 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                 ))}
             </div>
             <span className="text-sm font-bold text-text-muted">{step}/3</span>
+          </div>
         </div>
 
-        <div className="flex-1 px-8 pt-24 pb-32">
+        <div className="flex-1 w-full max-w-2xl mx-auto px-8 pt-24 pb-32">
             <AnimatePresence mode="wait">
                 {step === 1 && (
                     <motion.div
@@ -225,14 +227,16 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                             )}
                         </div>
 
-                        <div className="fixed bottom-0 inset-x-0 p-6 bg-gradient-to-t from-bg-main via-bg-main to-transparent max-w-lg mx-auto z-10">
-                            <button
-                                disabled={!isStep1Valid}
-                                onClick={() => setStep(2)}
-                                className="w-full bg-primary text-white font-bold text-lg py-5 rounded-[20px] flex items-center justify-center gap-2 hover:bg-primary-light transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_8px_30px_rgba(45,106,79,0.25)] hover:-translate-y-0.5 active:translate-y-0"
-                            >
-                                {t.btn_lanjut} <ChevronRight size={20} />
-                            </button>
+                        <div className="fixed bottom-0 inset-x-0 p-6 bg-gradient-to-t from-bg-main via-bg-main to-transparent z-10">
+                            <div className="max-w-2xl mx-auto w-full">
+                                <button
+                                    disabled={!isStep1Valid}
+                                    onClick={() => setStep(2)}
+                                    className="w-full bg-primary text-white font-bold text-lg py-5 rounded-[20px] flex items-center justify-center gap-2 hover:bg-primary-light transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_8px_30px_rgba(45,106,79,0.25)] hover:-translate-y-0.5 active:translate-y-0"
+                                >
+                                    {t.btn_lanjut} <ChevronRight size={20} />
+                                </button>
+                            </div>
                         </div>
                     </motion.div>
                 )}
@@ -269,14 +273,16 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                             ))}
                         </div>
 
-                        <div className="fixed bottom-0 inset-x-0 p-6 bg-gradient-to-t from-bg-main via-bg-main to-transparent max-w-lg mx-auto z-10">
-                            <button
-                                disabled={!isStep2Valid}
-                                onClick={() => setStep(3)}
-                                className="w-full bg-primary text-white font-bold text-lg py-5 rounded-[20px] flex items-center justify-center gap-2 hover:bg-primary-light transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_8px_30px_rgba(45,106,79,0.25)] hover:-translate-y-0.5 active:translate-y-0"
-                            >
-                                {t.btn_lanjut} <ChevronRight size={20} />
-                            </button>
+                        <div className="fixed bottom-0 inset-x-0 p-6 bg-gradient-to-t from-bg-main via-bg-main to-transparent z-10">
+                            <div className="max-w-2xl mx-auto w-full">
+                                <button
+                                    disabled={!isStep2Valid}
+                                    onClick={() => setStep(3)}
+                                    className="w-full bg-primary text-white font-bold text-lg py-5 rounded-[20px] flex items-center justify-center gap-2 hover:bg-primary-light transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_8px_30px_rgba(45,106,79,0.25)] hover:-translate-y-0.5 active:translate-y-0"
+                                >
+                                    {t.btn_lanjut} <ChevronRight size={20} />
+                                </button>
+                            </div>
                         </div>
                     </motion.div>
                 )}
@@ -323,14 +329,16 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                             ))}
                         </div>
 
-                        <div className="fixed bottom-0 inset-x-0 p-6 bg-gradient-to-t from-bg-main via-bg-main to-transparent max-w-lg mx-auto z-10">
-                            <button
-                                disabled={!tidakAdaAlergi && alergi.length === 0}
-                                onClick={handleSubmit}
-                                className="w-full bg-primary text-white font-bold text-lg py-5 rounded-[20px] flex items-center justify-center gap-2 hover:bg-primary-light transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_8px_30px_rgba(45,106,79,0.25)] hover:-translate-y-0.5 active:translate-y-0"
-                            >
-                                {loading ? "Menghitung..." : t.btn_selesai} <ArrowRight size={20} />
-                            </button>
+                        <div className="fixed bottom-0 inset-x-0 p-6 bg-gradient-to-t from-bg-main via-bg-main to-transparent z-10">
+                            <div className="max-w-2xl mx-auto w-full">
+                                <button
+                                    disabled={!tidakAdaAlergi && alergi.length === 0}
+                                    onClick={handleSubmit}
+                                    className="w-full bg-primary text-white font-bold text-lg py-5 rounded-[20px] flex items-center justify-center gap-2 hover:bg-primary-light transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_8px_30px_rgba(45,106,79,0.25)] hover:-translate-y-0.5 active:translate-y-0"
+                                >
+                                    {loading ? "Menghitung..." : t.btn_selesai} <ArrowRight size={20} />
+                                </button>
+                            </div>
                         </div>
                     </motion.div>
                 )}
