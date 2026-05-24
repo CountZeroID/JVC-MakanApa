@@ -389,29 +389,32 @@ export default function Profile({ streak = 0, onTargetUpdated, onOpenNara }: { s
     return (
         <div className="p-5 relative min-h-full pb-20 animate-in fade-in duration-500 max-w-6xl mx-auto">
             {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-            
+
             <div className="flex flex-col md:flex-row gap-8 items-start">
                 {/* KOLOM KIRI */}
                 <div className="w-full md:flex-1 space-y-8">
                     {/* Identity */}
-                    <div className="flex items-center gap-4 bg-bg-card p-5 rounded-[24px] shadow-[0_2px_16px_rgba(0,0,0,0.06)] border border-border">
-                        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-primary-light text-white flex items-center justify-center text-3xl font-black shrink-0 shadow-inner overflow-hidden">
-                            {profile.foto_profil ? (
-                                <img src={profile.foto_profil} alt={profile.nama} className="w-full h-full object-cover" />
-                            ) : (
-                                initial
-                            )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <h2 className="text-2xl font-bold text-text-primary font-heading truncate">{profile.nama}</h2>
-                            <div className="inline-flex items-center mt-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold font-heading">
-                                {profile.tujuan === 'diet' ? `🔥 ${t.goal_diet}` : profile.tujuan === 'bulking' ? `💪 ${t.goal_bulking}` : `⚖️ ${t.goal_maintain}`}
+                    <section className="space-y-3">
+                        <h3 className="font-bold text-lg text-text-primary tracking-tight">Profil</h3>
+                        <div className="flex items-center gap-4 bg-bg-card p-5 rounded-[24px] shadow-[0_2px_16px_rgba(0,0,0,0.06)] border border-border">
+                            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-primary-light text-white flex items-center justify-center text-3xl font-black shrink-0 shadow-inner overflow-hidden">
+                                {profile.foto_profil ? (
+                                    <img src={profile.foto_profil} alt={profile.nama} className="w-full h-full object-cover" />
+                                ) : (
+                                    initial
+                                )}
                             </div>
+                            <div className="flex-1 min-w-0">
+                                <h2 className="text-2xl font-bold text-text-primary font-heading truncate">{profile.nama}</h2>
+                                <div className="inline-flex items-center mt-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold font-heading">
+                                    {profile.tujuan === 'diet' ? `🔥 ${t.goal_diet}` : profile.tujuan === 'bulking' ? `💪 ${t.goal_bulking}` : `⚖️ ${t.goal_maintain}`}
+                                </div>
+                            </div>
+                            <button onClick={handleOpenEditProfile} className="w-10 h-10 rounded-full bg-bg-main flex items-center justify-center text-text-muted hover:text-primary transition-colors border border-border shrink-0">
+                                <Edit2 size={18} />
+                            </button>
                         </div>
-                        <button onClick={handleOpenEditProfile} className="w-10 h-10 rounded-full bg-bg-main flex items-center justify-center text-text-muted hover:text-primary transition-colors border border-border shrink-0">
-                            <Edit2 size={18} />
-                        </button>
-                    </div>
+                    </section>
 
                     {/* Guest Banner */}
                     {auth.currentUser?.isAnonymous && (

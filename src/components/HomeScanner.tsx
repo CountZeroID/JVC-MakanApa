@@ -277,27 +277,54 @@ export default function HomeScanner({ onSaveSuccess }: { onSaveSuccess: () => vo
 
             <div className="w-full md:w-1/2 flex flex-col space-y-5">
             {isAnalyzing && (
-                <div className="bg-bg-card rounded-[24px] p-6 shadow-[0_2px_16px_rgba(0,0,0,0.06)] border border-border flex flex-col gap-4 relative overflow-hidden">
-                    <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent animate-pulse"></div>
-                    <div className="flex justify-between items-end mb-2">
-                        <div>
-                            <p className="text-text-primary font-bold text-lg mb-1">{t.analyzing_1}</p>
-                            <p className="text-text-secondary font-medium text-xs">
-                                {analyzeProgress > 85 ? t.analyzing_5 : 
-                                 analyzeProgress > 60 ? t.analyzing_4 : 
-                                 analyzeProgress > 30 ? t.analyzing_3 : t.analyzing_2}
-                            </p>
+                <div className="flex flex-col space-y-5">
+                    <div className="bg-bg-card rounded-[24px] p-6 shadow-[0_2px_16px_rgba(0,0,0,0.06)] border border-border flex flex-col gap-4 relative overflow-hidden">
+                        <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent animate-pulse"></div>
+                        <div className="flex justify-between items-end mb-2">
+                            <div>
+                                <p className="text-text-primary font-bold text-lg mb-1">{t.analyzing_1}</p>
+                                <p className="text-text-secondary font-medium text-xs">
+                                    {analyzeProgress > 85 ? t.analyzing_5 : 
+                                     analyzeProgress > 60 ? t.analyzing_4 : 
+                                     analyzeProgress > 30 ? t.analyzing_3 : t.analyzing_2}
+                                </p>
+                            </div>
+                            <p className="text-primary font-black text-2xl font-heading">{Math.round(analyzeProgress)}%</p>
                         </div>
-                        <p className="text-primary font-black text-2xl font-heading">{Math.round(analyzeProgress)}%</p>
+                        
+                        <div className="w-full bg-border h-3.5 rounded-full overflow-hidden shadow-inner relative">
+                            <div 
+                                className="h-full rounded-full transition-all duration-150 ease-out bg-gradient-to-r from-primary to-primary-light"
+                                style={{ width: `${analyzeProgress}%` }}
+                            >
+                                <div className="absolute inset-0 bg-white/20 w-1/2 -skew-x-12 translate-x-[-150%] animate-[slide_2s_infinite]"></div>
+                            </div>
+                        </div>
                     </div>
-                    
-                    <div className="w-full bg-border h-3.5 rounded-full overflow-hidden shadow-inner relative">
-                        <div 
-                            className="h-full rounded-full transition-all duration-150 ease-out bg-gradient-to-r from-primary to-primary-light"
-                            style={{ width: `${analyzeProgress}%` }}
-                        >
-                            <div className="absolute inset-0 bg-white/20 w-1/2 -skew-x-12 translate-x-[-150%] animate-[slide_2s_infinite]"></div>
+
+                    {/* SKELETON PREVIEW */}
+                    <div className="bg-bg-card rounded-[24px] p-6 shadow-[0_2px_16px_rgba(0,0,0,0.06)] border border-border space-y-6 animate-pulse">
+                        <div className="flex items-start justify-between gap-4">
+                            <div className="flex items-center gap-3">
+                                <div className="w-14 h-14 bg-border rounded-[16px]"></div>
+                                <div className="space-y-2">
+                                    <div className="w-32 h-5 bg-border rounded-lg"></div>
+                                    <div className="w-20 h-3 bg-border rounded-lg"></div>
+                                </div>
+                            </div>
+                            <div className="flex flex-col items-end gap-1.5">
+                                <div className="w-16 h-7 bg-border rounded-lg"></div>
+                                <div className="w-10 h-3 bg-border rounded-lg"></div>
+                            </div>
                         </div>
+                        
+                        <div className="grid grid-cols-3 gap-3">
+                            <div className="h-[76px] bg-border rounded-[16px]"></div>
+                            <div className="h-[76px] bg-border rounded-[16px]"></div>
+                            <div className="h-[76px] bg-border rounded-[16px]"></div>
+                        </div>
+
+                        <div className="h-12 bg-border rounded-[14px] w-full"></div>
                     </div>
                 </div>
             )}

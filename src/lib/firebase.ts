@@ -59,13 +59,7 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
 // Authentication Helpers
 export const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    if (isMobile) {
-        const { signInWithRedirect } = await import('firebase/auth');
-        return await signInWithRedirect(auth, provider);
-    } else {
-        return await signInWithPopup(auth, provider);
-    }
+    return await signInWithPopup(auth, provider);
 };
 
 export const logoutUser = async () => {
