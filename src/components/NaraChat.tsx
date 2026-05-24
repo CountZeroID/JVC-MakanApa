@@ -389,7 +389,7 @@ export default function NaraChat() {
             </div>
 
             {/* Input Area */}
-            <div className="bg-bg-card border-t border-border p-4 shrink-0">
+            <div className="bg-bg-card border-t border-border px-4 pt-3 pb-[96px] sm:pb-[104px] shrink-0">
                 <div className="flex overflow-x-auto hidden-scrollbar gap-2 mb-3 pb-1">
                     {[t.nara_chip1, t.nara_chip2, t.nara_chip3, t.nara_chip4].map((action, idx) => (
                         <button

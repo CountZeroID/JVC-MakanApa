@@ -276,7 +276,9 @@ export default function Profile({ streak = 0, onTargetUpdated, onOpenNara }: { s
         setShowEditTarget(false);
 
         // Background save
-        saveUserProfile(updated).catch(e => {
+        saveUserProfile(updated).then(() => {
+            setToast({ message: "Profile updated successfully!", type: 'success' });
+        }).catch(e => {
             console.error("Save error:", e);
             setProfile(prevProfile);
             if (onTargetUpdated) onTargetUpdated(prevProfile.target_kalori);
@@ -300,7 +302,9 @@ export default function Profile({ streak = 0, onTargetUpdated, onOpenNara }: { s
         setShowEditAlergi(false);
 
         // Background save
-        saveUserProfile(updated).catch(e => {
+        saveUserProfile(updated).then(() => {
+            setToast({ message: "Profile updated successfully!", type: 'success' });
+        }).catch(e => {
             console.error("Save error:", e);
             setProfile(prevProfile);
             setToast({ message: t.profile_updated_error as string, type: 'error' });
@@ -367,9 +371,11 @@ export default function Profile({ streak = 0, onTargetUpdated, onOpenNara }: { s
                     } else {
                         updated.foto_profil = (prevProfile.foto_profil && !prevProfile.foto_profil.startsWith('data:image/')) ? prevProfile.foto_profil : '';
                     }
-                    setProfile({ ...updated }); // Update with real URL
+                    // Update state again with real URL
+                    setProfile({ ...updated });
                 }
                 await saveUserProfile(updated);
+                setToast({ message: "Profile updated successfully!", type: 'success' });
             } catch (error) {
                 console.error("Error saving profile:", error);
                 setProfile(prevProfile);
@@ -381,223 +387,232 @@ export default function Profile({ streak = 0, onTargetUpdated, onOpenNara }: { s
     };
 
     return (
-        <div className="p-5 relative min-h-full pb-20 space-y-8 animate-in fade-in duration-500">
+        <div className="p-5 relative min-h-full pb-20 animate-in fade-in duration-500 max-w-6xl mx-auto">
             {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-            {/* Identity */}
-            <div className="flex items-center gap-4 bg-bg-card p-5 rounded-[24px] shadow-[0_2px_16px_rgba(0,0,0,0.06)] border border-border">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-primary-light text-white flex items-center justify-center text-3xl font-black shrink-0 shadow-inner overflow-hidden">
-                    {profile.foto_profil ? (
-                        <img src={profile.foto_profil} alt={profile.nama} className="w-full h-full object-cover" />
-                    ) : (
-                        initial
+            
+            <div className="flex flex-col md:flex-row gap-8 items-start">
+                {/* KOLOM KIRI */}
+                <div className="w-full md:flex-1 space-y-8">
+                    {/* Identity */}
+                    <div className="flex items-center gap-4 bg-bg-card p-5 rounded-[24px] shadow-[0_2px_16px_rgba(0,0,0,0.06)] border border-border">
+                        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-primary-light text-white flex items-center justify-center text-3xl font-black shrink-0 shadow-inner overflow-hidden">
+                            {profile.foto_profil ? (
+                                <img src={profile.foto_profil} alt={profile.nama} className="w-full h-full object-cover" />
+                            ) : (
+                                initial
+                            )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <h2 className="text-2xl font-bold text-text-primary font-heading truncate">{profile.nama}</h2>
+                            <div className="inline-flex items-center mt-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold font-heading">
+                                {profile.tujuan === 'diet' ? `🔥 ${t.goal_diet}` : profile.tujuan === 'bulking' ? `💪 ${t.goal_bulking}` : `⚖️ ${t.goal_maintain}`}
+                            </div>
+                        </div>
+                        <button onClick={handleOpenEditProfile} className="w-10 h-10 rounded-full bg-bg-main flex items-center justify-center text-text-muted hover:text-primary transition-colors border border-border shrink-0">
+                            <Edit2 size={18} />
+                        </button>
+                    </div>
+
+                    {/* Guest Banner */}
+                    {auth.currentUser?.isAnonymous && (
+                        <div className="bg-warning/10 border border-warning/30 rounded-2xl p-4 flex flex-col gap-3">
+                            <div className="flex items-center gap-3">
+                                <div className="text-xl shrink-0">👤</div>
+                                <div>
+                                    <p className="font-bold text-sm text-text-primary mb-0.5">{t.guest_banner}</p>
+                                    <p className="text-xs font-medium text-text-secondary">{t.guest_sub}</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={async () => {
+                                    await logoutUser();
+                                }}
+                                className="w-full bg-primary text-white font-bold py-2.5 flex justify-center items-center gap-2 rounded-xl text-sm"
+                            >
+                                <UserPlus size={16} /> {t.btn_buat_akun}
+                            </button>
+                        </div>
                     )}
-                </div>
-                <div className="flex-1 min-w-0">
-                    <h2 className="text-2xl font-bold text-text-primary font-heading truncate">{profile.nama}</h2>
-                    <div className="inline-flex items-center mt-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold font-heading">
-                        {profile.tujuan === 'diet' ? `🔥 ${t.goal_diet}` : profile.tujuan === 'bulking' ? `💪 ${t.goal_bulking}` : `⚖️ ${t.goal_maintain}`}
+
+                    {/* Stats Summary */}
+                    <div className="flex overflow-x-auto gap-3 pb-2 -mx-5 px-5 md:mx-0 md:px-0 no-scrollbar snap-x">
+                        <div className="snap-center shrink-0 w-[140px] p-4 rounded-[20px] bg-bg-card border border-border shadow-sm flex flex-col gap-1">
+                            <span className="text-2xl mb-1">🔥</span>
+                            <p className="text-[10px] text-text-secondary font-bold uppercase tracking-widest">{t.label_streak}</p>
+                            <p className="text-2xl font-black font-mono text-primary leading-none">{streak}</p>
+                        </div>
+                        <div className="snap-center shrink-0 w-[140px] p-4 rounded-[20px] bg-bg-card border border-border shadow-sm flex flex-col gap-1">
+                            <span className="text-2xl mb-1">📊</span>
+                            <p className="text-[10px] text-text-secondary font-bold uppercase tracking-widest">{t.label_total_dicatat}</p>
+                            <p className="text-2xl font-black font-mono text-primary leading-none">{totalMeals}</p>
+                        </div>
+                        <div className="snap-center shrink-0 w-[140px] p-4 rounded-[20px] bg-bg-card border border-border shadow-sm flex flex-col gap-1">
+                            <span className="text-2xl mb-1">🎯</span>
+                            <p className="text-[10px] text-text-secondary font-bold uppercase tracking-widest">{t.label_target_kalori}</p>
+                            <p className="text-2xl font-black font-mono text-primary leading-none">{profile.target_kalori}</p>
+                        </div>
+                        <div className="snap-center shrink-0 w-[140px] p-4 rounded-[20px] bg-bg-card border border-border shadow-sm flex flex-col gap-1">
+                            <span className="text-2xl mb-1">⚖️</span>
+                            <p className="text-[10px] text-text-secondary font-bold uppercase tracking-widest">{t.label_bmi}</p>
+                            <div className="flex items-baseline gap-1.5">
+                                <p className="text-2xl font-black font-mono text-primary leading-none">{bmi.toFixed(1)}</p>
+                                <p className={`text-[10px] font-bold ${bmiColor}`}>{bmiCategory}</p>
+                            </div>
+                        </div>
                     </div>
+
+                    {/* Pengaturan */}
+                    <section className="space-y-3">
+                        <h3 className="font-bold text-lg text-text-primary tracking-tight">{t.pengaturan}</h3>
+                        <div className="bg-bg-card rounded-[24px] border border-border shadow-sm overflow-hidden">
+                            <div className="flex items-center justify-between p-4 border-b border-border/50">
+                                <div className="flex items-center gap-3 text-text-primary font-bold text-sm">
+                                    <Globe size={18} className="text-text-muted" /> {t.bahasa}
+                                </div>
+                                <button onClick={() => { setTempLang(settings.language); setShowEditLang(true); }} className="flex items-center gap-2 text-xs font-bold text-text-secondary bg-bg-main px-3 py-1.5 rounded-lg border border-border">
+                                    {settings.language === 'id' ? 'Indonesia' : settings.language === 'en' ? 'English' : settings.language === 'es' ? 'Español' : settings.language === 'zh' ? '中文' : settings.language === 'ar' ? 'العربية' : 'Indonesia'} <ChevronRight size={14} />
+                                </button>
+                            </div>
+                            <div className="flex items-center justify-between p-4 border-b border-border/50">
+                                <div className="flex items-center gap-3 text-text-primary font-bold text-sm">
+                                    <Bell size={18} className="text-text-muted" /> {t.notif_nara}
+                                </div>
+                                <button onClick={() => updateSetting('naraNotifications', !settings.naraNotifications)} className={`w-11 h-6 rounded-full transition-colors relative ${settings.naraNotifications ? 'bg-primary' : 'bg-border'}`}>
+                                    <div className={`w-5 h-5 bg-white rounded-full absolute pl-0.5 top-0.5 transition-transform ${settings.naraNotifications ? 'translate-x-5' : 'translate-x-0.5'}`}></div>
+                                </button>
+                            </div>
+                            <div className="flex items-center justify-between p-4 border-b border-border/50">
+                                <div className="flex items-center gap-3 text-text-primary font-bold text-sm">
+                                    <Scale size={18} className="text-text-muted" /> {t.satuan_berat}
+                                </div>
+                                <button onClick={() => { setTempUnit(settings.unitSystem === 'imperial'); setShowEditUnit(true); }} className="flex items-center gap-2 text-xs font-bold text-text-secondary bg-bg-main px-3 py-1.5 rounded-lg border border-border">
+                                    {settings.unitSystem === 'imperial' ? t.satuan_imperial : t.satuan_metric} <ChevronRight size={14} />
+                                </button>
+                            </div>
+                            <div className="flex items-center justify-between p-4 border-b border-border/50">
+                                <div className="flex items-center gap-3 text-text-primary font-bold text-sm">
+                                    <Moon size={18} className="text-text-muted" /> {t.tema_gelap}
+                                </div>
+                                <button onClick={() => updateSetting('darkMode', !settings.darkMode)} className={`w-11 h-6 rounded-full transition-colors relative ${settings.darkMode ? 'bg-primary' : 'bg-border'}`}>
+                                    <div className={`w-5 h-5 bg-white rounded-full absolute pl-0.5 top-0.5 transition-transform ${settings.darkMode ? 'translate-x-5' : 'translate-x-0.5'}`}></div>
+                                </button>
+                            </div>
+
+                            <button onClick={() => setShowDeleteConfirm(true)} className="w-full flex items-center justify-between p-4 border-b border-border/50 hover:bg-bg-main transition-colors text-error text-left">
+                                <div className="flex items-center gap-3 font-bold text-sm">
+                                    <Trash2 size={18} /> {t.hapus_akun}
+                                </div>
+                                <ChevronRight size={16} className="text-error/50" />
+                            </button>
+
+                            <button onClick={() => setShowLogoutConfirm(true)} className="w-full flex items-center justify-between p-4 hover:bg-bg-main transition-colors text-text-primary text-left">
+                                <div className="flex items-center gap-3 font-bold text-sm">
+                                    <LogOut size={18} className="text-text-muted" /> {t.keluar}
+                                </div>
+                                <ChevronRight size={16} className="text-text-muted/50" />
+                            </button>
+                        </div>
+                    </section>
                 </div>
-                <button onClick={handleOpenEditProfile} className="w-10 h-10 rounded-full bg-bg-main flex items-center justify-center text-text-muted hover:text-primary transition-colors border border-border shrink-0">
-                    <Edit2 size={18} />
-                </button>
+
+                {/* KOLOM KANAN */}
+                <div className="w-full md:flex-1 space-y-8">
+                    {/* Target Harian */}
+                    <section className="space-y-3">
+                        <div className="flex justify-between items-end">
+                            <h3 className="font-bold text-lg text-text-primary tracking-tight">{t.target_harian}</h3>
+                            <div className="flex gap-2">
+                                <button onClick={handleRecalculate} className="text-[10px] font-bold text-text-secondary bg-border/40 px-2.5 py-1.5 rounded-md hover:bg-border/60 transition flex items-center gap-1">
+                                    <Calculator size={12} /> {t.btn_hitung}
+                                </button>
+                                <button onClick={handleOpenEditTarget} className="text-[10px] font-bold text-primary bg-primary/10 px-2.5 py-1.5 rounded-md hover:bg-primary/20 transition flex items-center gap-1">
+                                    <Edit2 size={12} /> {t.btn_ubah}
+                                </button>
+                            </div>
+                        </div>
+                        <div className="bg-bg-card rounded-[24px] p-5 border border-border shadow-sm grid grid-cols-2 gap-y-4 gap-x-6">
+                            <div>
+                                <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest mb-0.5">{t.label_kalori}</p>
+                                <p className="text-xl font-bold font-mono text-text-primary">{profile.target_kalori} <span className="text-[10px] text-text-muted uppercase">{t.label_kcal}</span></p>
+                            </div>
+                            <div>
+                                <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest mb-0.5">{t.label_protein}</p>
+                                <p className="text-xl font-bold font-mono text-success">{profile.target_protein_g} <span className="text-[10px] text-text-muted uppercase">{unitLabel.gram}</span></p>
+                            </div>
+                            <div>
+                                <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest mb-0.5">{t.label_karbo}</p>
+                                <p className="text-xl font-bold font-mono text-warning">{profile.target_karbo_g} <span className="text-[10px] text-text-muted uppercase">{unitLabel.gram}</span></p>
+                            </div>
+                            <div>
+                                <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest mb-0.5">{t.label_lemak}</p>
+                                <p className="text-xl font-bold font-mono text-error">{profile.target_lemak_g} <span className="text-[10px] text-text-muted uppercase">{unitLabel.gram}</span></p>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Alergi & Pantangan */}
+                    <section className="space-y-3">
+                        <div className="flex justify-between items-end">
+                            <h3 className="font-bold text-lg text-text-primary tracking-tight">{t.alergi_title}</h3>
+                            <button onClick={handleOpenEditAlergi} className="text-[10px] font-bold text-primary bg-primary/10 px-2.5 py-1.5 rounded-md hover:bg-primary/20 transition flex items-center gap-1">
+                                <Edit2 size={12} /> {t.btn_edit}
+                            </button>
+                        </div>
+                        <div className="bg-bg-card rounded-[24px] p-5 border border-border shadow-sm flex gap-2 flex-wrap">
+                            {profile.alergi && profile.alergi.length > 0 ? (
+                                profile.alergi.map(a => (
+                                    <span key={a} className="bg-error/10 text-error font-bold text-xs px-3 py-1.5 rounded-lg border border-error/20 inline-flex items-center gap-1">
+                                        <span className="text-[10px]">🚫</span> {(t as any)[`alergi_${a.toLowerCase().replace(/ /g, '_').replace('-', '_')}`] || a}
+                                    </span>
+                                ))
+                            ) : (
+                                <span className="text-sm font-medium text-text-muted italic">{t.tidak_ada_alergi}</span>
+                            )}
+                        </div>
+                    </section>
+
+                    {/* Dukungan & Kebijakan */}
+                    <section className="space-y-3">
+                        <h3 className="font-bold text-lg text-text-primary tracking-tight">{t.bantuan}</h3>
+                        <div className="bg-bg-card rounded-[24px] border border-border shadow-sm overflow-hidden">
+                            <button onClick={() => setShowHelp(true)} className="w-full flex items-center justify-between p-4 border-b border-border/50 hover:bg-bg-main transition-colors text-text-primary text-left">
+                                <div className="flex items-center gap-3 font-bold text-sm">
+                                    <Info size={18} className="text-text-muted" /> {t.bantuan}
+                                </div>
+                                <ChevronRight size={16} className="text-text-muted/50" />
+                            </button>
+                            <button onClick={() => setShowTerms(true)} className="w-full flex items-center justify-between p-4 border-b border-border/50 hover:bg-bg-main transition-colors text-text-primary text-left">
+                                <div className="flex items-center gap-3 font-bold text-sm">
+                                    <Scale size={18} className="text-text-muted" /> {t.syarat_ketentuan}
+                                </div>
+                                <ChevronRight size={16} className="text-text-muted/50" />
+                            </button>
+                            <button onClick={() => setShowPrivacyPolicy(true)} className="w-full flex items-center justify-between p-4 hover:bg-bg-main transition-colors text-text-primary text-left">
+                                <div className="flex items-center gap-3 font-bold text-sm">
+                                    <Shield size={18} className="text-text-muted" /> {t.kebijakan_privasi}
+                                </div>
+                                <ChevronRight size={16} className="text-text-muted/50" />
+                            </button>
+                        </div>
+                    </section>
+
+                    {/* Tentang Aplikasi */}
+                    <section className="pt-4 pb-8 flex flex-col items-center justify-center text-center">
+                        <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3 shadow-[0_4px_20px_rgba(123,97,255,0.4)] overflow-hidden">
+                            <img src="/icon.png" alt="MakanApa" className="w-full h-full object-cover" />
+                        </div>
+                        <div className="flex items-baseline justify-center gap-2">
+                            <span className="text-2xl font-bold text-text-primary">MakanApa</span>
+                            <span className="text-sm font-medium text-primary-light">v1.40</span>
+                        </div>
+                        <p className="text-sm text-text-muted font-medium mb-4 mt-1">Foto. Kenali. Sehat.</p>
+
+                        <button onClick={() => setShowAboutNara(true)} className="text-xs font-bold text-text-secondary border border-border px-4 py-2 rounded-full hover:bg-bg-main transition-colors flex items-center gap-2">
+                            <Info size={14} /> {t.tentang_nara_btn}
+                        </button>
+                    </section>
+                </div>
             </div>
-
-            {/* Guest Banner */}
-            {auth.currentUser?.isAnonymous && (
-                <div className="bg-warning/10 border border-warning/30 rounded-2xl p-4 flex flex-col gap-3">
-                    <div className="flex items-center gap-3">
-                        <div className="text-xl shrink-0">👤</div>
-                        <div>
-                            <p className="font-bold text-sm text-text-primary mb-0.5">{t.guest_banner}</p>
-                            <p className="text-xs font-medium text-text-secondary">{t.guest_sub}</p>
-                        </div>
-                    </div>
-                    <button
-                        onClick={async () => {
-                            await logoutUser();
-                        }}
-                        className="w-full bg-primary text-white font-bold py-2.5 flex justify-center items-center gap-2 rounded-xl text-sm"
-                    >
-                        <UserPlus size={16} /> {t.btn_buat_akun}
-                    </button>
-                </div>
-            )}
-
-            {/* Stats Summary */}
-            <div className="flex overflow-x-auto gap-3 pb-2 -mx-5 px-5 no-scrollbar snap-x">
-                <div className="snap-center shrink-0 w-[140px] p-4 rounded-[20px] bg-bg-card border border-border shadow-sm flex flex-col gap-1">
-                    <span className="text-2xl mb-1">🔥</span>
-                    <p className="text-[10px] text-text-secondary font-bold uppercase tracking-widest">{t.label_streak}</p>
-                    <p className="text-2xl font-black font-mono text-primary leading-none">{streak}</p>
-                </div>
-                <div className="snap-center shrink-0 w-[140px] p-4 rounded-[20px] bg-bg-card border border-border shadow-sm flex flex-col gap-1">
-                    <span className="text-2xl mb-1">📊</span>
-                    <p className="text-[10px] text-text-secondary font-bold uppercase tracking-widest">{t.label_total_dicatat}</p>
-                    <p className="text-2xl font-black font-mono text-primary leading-none">{totalMeals}</p>
-                </div>
-                <div className="snap-center shrink-0 w-[140px] p-4 rounded-[20px] bg-bg-card border border-border shadow-sm flex flex-col gap-1">
-                    <span className="text-2xl mb-1">🎯</span>
-                    <p className="text-[10px] text-text-secondary font-bold uppercase tracking-widest">{t.label_target_kalori}</p>
-                    <p className="text-2xl font-black font-mono text-primary leading-none">{profile.target_kalori}</p>
-                </div>
-                <div className="snap-center shrink-0 w-[140px] p-4 rounded-[20px] bg-bg-card border border-border shadow-sm flex flex-col gap-1">
-                    <span className="text-2xl mb-1">⚖️</span>
-                    <p className="text-[10px] text-text-secondary font-bold uppercase tracking-widest">{t.label_bmi}</p>
-                    <div className="flex items-baseline gap-1.5">
-                        <p className="text-2xl font-black font-mono text-primary leading-none">{bmi.toFixed(1)}</p>
-                        <p className={`text-[10px] font-bold ${bmiColor}`}>{bmiCategory}</p>
-                    </div>
-                </div>
-            </div>
-
-            {/* Target Harian */}
-            <section className="space-y-3">
-                <div className="flex justify-between items-end">
-                    <h3 className="font-bold text-lg text-text-primary tracking-tight">{t.target_harian}</h3>
-                    <div className="flex gap-2">
-                        <button onClick={handleRecalculate} className="text-[10px] font-bold text-text-secondary bg-border/40 px-2.5 py-1.5 rounded-md hover:bg-border/60 transition flex items-center gap-1">
-                            <Calculator size={12} /> {t.btn_hitung}
-                        </button>
-                        <button onClick={handleOpenEditTarget} className="text-[10px] font-bold text-primary bg-primary/10 px-2.5 py-1.5 rounded-md hover:bg-primary/20 transition flex items-center gap-1">
-                            <Edit2 size={12} /> {t.btn_ubah}
-                        </button>
-                    </div>
-                </div>
-                <div className="bg-bg-card rounded-[24px] p-5 border border-border shadow-sm grid grid-cols-2 gap-y-4 gap-x-6">
-                    <div>
-                        <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest mb-0.5">{t.label_kalori}</p>
-                        <p className="text-xl font-bold font-mono text-text-primary">{profile.target_kalori} <span className="text-[10px] text-text-muted uppercase">{t.label_kcal}</span></p>
-                    </div>
-                    <div>
-                        <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest mb-0.5">{t.label_protein}</p>
-                        <p className="text-xl font-bold font-mono text-success">{profile.target_protein_g} <span className="text-[10px] text-text-muted uppercase">{unitLabel.gram}</span></p>
-                    </div>
-                    <div>
-                        <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest mb-0.5">{t.label_karbo}</p>
-                        <p className="text-xl font-bold font-mono text-warning">{profile.target_karbo_g} <span className="text-[10px] text-text-muted uppercase">{unitLabel.gram}</span></p>
-                    </div>
-                    <div>
-                        <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest mb-0.5">{t.label_lemak}</p>
-                        <p className="text-xl font-bold font-mono text-error">{profile.target_lemak_g} <span className="text-[10px] text-text-muted uppercase">{unitLabel.gram}</span></p>
-                    </div>
-                </div>
-            </section>
-
-            {/* Alergi & Pantangan */}
-            <section className="space-y-3">
-                <div className="flex justify-between items-end">
-                    <h3 className="font-bold text-lg text-text-primary tracking-tight">{t.alergi_title}</h3>
-                    <button onClick={handleOpenEditAlergi} className="text-[10px] font-bold text-primary bg-primary/10 px-2.5 py-1.5 rounded-md hover:bg-primary/20 transition flex items-center gap-1">
-                        <Edit2 size={12} /> {t.btn_edit}
-                    </button>
-                </div>
-                <div className="bg-bg-card rounded-[24px] p-5 border border-border shadow-sm flex gap-2 flex-wrap">
-                    {profile.alergi && profile.alergi.length > 0 ? (
-                        profile.alergi.map(a => (
-                            <span key={a} className="bg-error/10 text-error font-bold text-xs px-3 py-1.5 rounded-lg border border-error/20 inline-flex items-center gap-1">
-                                <span className="text-[10px]">🚫</span> {(t as any)[`alergi_${a.toLowerCase().replace(/ /g, '_').replace('-', '_')}`] || a}
-                            </span>
-                        ))
-                    ) : (
-                        <span className="text-sm font-medium text-text-muted italic">{t.tidak_ada_alergi}</span>
-                    )}
-                </div>
-            </section>
-
-            {/* Pengaturan */}
-            <section className="space-y-3">
-                <h3 className="font-bold text-lg text-text-primary tracking-tight">{t.pengaturan}</h3>
-                <div className="bg-bg-card rounded-[24px] border border-border shadow-sm overflow-hidden">
-                    <div className="flex items-center justify-between p-4 border-b border-border/50">
-                        <div className="flex items-center gap-3 text-text-primary font-bold text-sm">
-                            <Globe size={18} className="text-text-muted" /> {t.bahasa}
-                        </div>
-                        <button onClick={() => { setTempLang(settings.language); setShowEditLang(true); }} className="flex items-center gap-2 text-xs font-bold text-text-secondary bg-bg-main px-3 py-1.5 rounded-lg border border-border">
-                            {settings.language === 'id' ? 'Indonesia' : settings.language === 'en' ? 'English' : settings.language === 'es' ? 'Español' : settings.language === 'zh' ? '中文' : settings.language === 'ar' ? 'العربية' : 'Indonesia'} <ChevronRight size={14} />
-                        </button>
-                    </div>
-                    <div className="flex items-center justify-between p-4 border-b border-border/50">
-                        <div className="flex items-center gap-3 text-text-primary font-bold text-sm">
-                            <Bell size={18} className="text-text-muted" /> {t.notif_nara}
-                        </div>
-                        <button onClick={() => updateSetting('naraNotifications', !settings.naraNotifications)} className={`w-11 h-6 rounded-full transition-colors relative ${settings.naraNotifications ? 'bg-primary' : 'bg-border'}`}>
-                            <div className={`w-5 h-5 bg-white rounded-full absolute pl-0.5 top-0.5 transition-transform ${settings.naraNotifications ? 'translate-x-5' : 'translate-x-0.5'}`}></div>
-                        </button>
-                    </div>
-                    <div className="flex items-center justify-between p-4 border-b border-border/50">
-                        <div className="flex items-center gap-3 text-text-primary font-bold text-sm">
-                            <Scale size={18} className="text-text-muted" /> {t.satuan_berat}
-                        </div>
-                        <button onClick={() => { setTempUnit(settings.unitSystem === 'imperial'); setShowEditUnit(true); }} className="flex items-center gap-2 text-xs font-bold text-text-secondary bg-bg-main px-3 py-1.5 rounded-lg border border-border">
-                            {settings.unitSystem === 'imperial' ? t.satuan_imperial : t.satuan_metric} <ChevronRight size={14} />
-                        </button>
-                    </div>
-                    <div className="flex items-center justify-between p-4 border-b border-border/50">
-                        <div className="flex items-center gap-3 text-text-primary font-bold text-sm">
-                            <Moon size={18} className="text-text-muted" /> {t.tema_gelap}
-                        </div>
-                        <button onClick={() => updateSetting('darkMode', !settings.darkMode)} className={`w-11 h-6 rounded-full transition-colors relative ${settings.darkMode ? 'bg-primary' : 'bg-border'}`}>
-                            <div className={`w-5 h-5 bg-white rounded-full absolute pl-0.5 top-0.5 transition-transform ${settings.darkMode ? 'translate-x-5' : 'translate-x-0.5'}`}></div>
-                        </button>
-                    </div>
-
-                    <button onClick={() => setShowDeleteConfirm(true)} className="w-full flex items-center justify-between p-4 border-b border-border/50 hover:bg-bg-main transition-colors text-error text-left">
-                        <div className="flex items-center gap-3 font-bold text-sm">
-                            <Trash2 size={18} /> {t.hapus_akun}
-                        </div>
-                        <ChevronRight size={16} className="text-error/50" />
-                    </button>
-
-                    <button onClick={() => setShowLogoutConfirm(true)} className="w-full flex items-center justify-between p-4 hover:bg-bg-main transition-colors text-text-primary text-left">
-                        <div className="flex items-center gap-3 font-bold text-sm">
-                            <LogOut size={18} className="text-text-muted" /> {t.keluar}
-                        </div>
-                        <ChevronRight size={16} className="text-text-muted/50" />
-                    </button>
-                </div>
-            </section>
-
-            {/* Dukungan & Kebijakan */}
-            <section className="space-y-3">
-                <h3 className="font-bold text-lg text-text-primary tracking-tight">{t.bantuan}</h3>
-                <div className="bg-bg-card rounded-[24px] border border-border shadow-sm overflow-hidden">
-                    <button onClick={() => setShowHelp(true)} className="w-full flex items-center justify-between p-4 border-b border-border/50 hover:bg-bg-main transition-colors text-text-primary text-left">
-                        <div className="flex items-center gap-3 font-bold text-sm">
-                            <Info size={18} className="text-text-muted" /> {t.bantuan}
-                        </div>
-                        <ChevronRight size={16} className="text-text-muted/50" />
-                    </button>
-                    <button onClick={() => setShowTerms(true)} className="w-full flex items-center justify-between p-4 border-b border-border/50 hover:bg-bg-main transition-colors text-text-primary text-left">
-                        <div className="flex items-center gap-3 font-bold text-sm">
-                            <Scale size={18} className="text-text-muted" /> {t.syarat_ketentuan}
-                        </div>
-                        <ChevronRight size={16} className="text-text-muted/50" />
-                    </button>
-                    <button onClick={() => setShowPrivacyPolicy(true)} className="w-full flex items-center justify-between p-4 hover:bg-bg-main transition-colors text-text-primary text-left">
-                        <div className="flex items-center gap-3 font-bold text-sm">
-                            <Shield size={18} className="text-text-muted" /> {t.kebijakan_privasi}
-                        </div>
-                        <ChevronRight size={16} className="text-text-muted/50" />
-                    </button>
-                </div>
-            </section>
-
-            {/* Tentang Aplikasi */}
-            <section className="pt-4 pb-8 flex flex-col items-center justify-center text-center">
-                <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3 shadow-[0_4px_20px_rgba(123,97,255,0.4)] overflow-hidden">
-                    <img src="/icon.png" alt="MakanApa" className="w-full h-full object-cover" />
-                </div>
-                <div className="flex items-baseline justify-center gap-2">
-                    <span className="text-2xl font-bold text-text-primary">MakanApa</span>
-                    <span className="text-sm font-medium text-primary-light">v1.40</span>
-                </div>
-                <p className="text-sm text-text-muted font-medium mb-4 mt-1">Foto. Kenali. Sehat.</p>
-
-                <button onClick={() => setShowAboutNara(true)} className="text-xs font-bold text-text-secondary border border-border px-4 py-2 rounded-full hover:bg-bg-main transition-colors flex items-center gap-2">
-                    <Info size={14} /> {t.tentang_nara_btn}
-                </button>
-            </section>
 
             <BottomSheet isOpen={showEditTarget} onClose={() => setShowEditTarget(false)} title={t.ubah_target_harian}>
                 <div className="space-y-4 px-1 pb-4">
@@ -802,13 +817,21 @@ export default function Profile({ streak = 0, onTargetUpdated, onOpenNara }: { s
                         </p>
                     )}
 
-                    <button
-                        onClick={handleSaveEditProfile}
-                        disabled={loading || !editProfileData.nama.trim() || Number(editProfileData.usia) <= 0 || Number(editProfileData.berat_kg) <= 0 || Number(editProfileData.tinggi_cm) <= 0}
-                        className="w-full bg-primary text-white font-bold py-4 rounded-xl mt-4 active:scale-[0.98] transition-transform shadow-lg shadow-primary/20 disabled:opacity-50 flex items-center justify-center gap-2"
-                    >
-                        {loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : t.btn_simpan}
-                    </button>
+                    <div className="flex gap-3 mt-4">
+                        <button
+                            onClick={() => setShowEditProfile(false)}
+                            className="flex-1 bg-bg-main text-text-primary font-bold py-4 rounded-xl border border-border active:scale-[0.98] transition-all hover:bg-border/50"
+                        >
+                            {t.batal || "Batal"}
+                        </button>
+                        <button
+                            onClick={handleSaveEditProfile}
+                            disabled={loading || !editProfileData.nama.trim() || Number(editProfileData.usia) <= 0 || Number(editProfileData.berat_kg) <= 0 || Number(editProfileData.tinggi_cm) <= 0}
+                            className="flex-1 bg-primary text-white font-bold py-4 rounded-xl active:scale-[0.98] transition-transform shadow-lg shadow-primary/20 disabled:opacity-50 flex items-center justify-center gap-2"
+                        >
+                            {loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : t.btn_simpan}
+                        </button>
+                    </div>
                 </div>
             </BottomSheet>
 

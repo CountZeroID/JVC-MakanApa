@@ -74,19 +74,24 @@
   .dark {
     color-scheme: dark;
   }
-  .dark ::-webkit-scrollbar {
+
+  /* Auto-hide Scrollbar for all themes */
+  ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
-  .dark ::-webkit-scrollbar-track {
-    background: var(--color-bg-main);
+  ::-webkit-scrollbar-track {
+    background: transparent;
   }
-  .dark ::-webkit-scrollbar-thumb {
+  ::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 10px;
+  }
+  :hover::-webkit-scrollbar-thumb {
     background: var(--color-border);
-    border-radius: 3px;
   }
-  .dark ::-webkit-scrollbar-thumb:hover {
-    background: #555;
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-primary) !important;
   }
 }
 

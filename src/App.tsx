@@ -303,13 +303,19 @@ export default function App() {
         </main>
 
         {/* Bottom Navigation */}
-        <div className="absolute bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none px-4 h-32 items-end pb-6">
+        <div className="absolute bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none px-4 items-end">
           <motion.div 
             ref={navRef}
-            className="pointer-events-auto flex items-end justify-center w-full max-w-md h-full relative"
+            className="pointer-events-auto flex items-end justify-center w-full max-w-md relative pb-6 pt-8"
             onMouseEnter={() => setIsNavHovered(true)}
             onMouseLeave={() => setIsNavHovered(false)}
-            onTouchStart={() => setIsNavHovered(true)}
+            onClickCapture={(e) => {
+              if (!isNavHovered) {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsNavHovered(true);
+              }
+            }}
           >
             <motion.nav 
               initial={false}
