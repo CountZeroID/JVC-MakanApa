@@ -175,16 +175,21 @@ export default function HomeScanner({ onSaveSuccess }: { onSaveSuccess: () => vo
           }
       });
 
-      if (imagePreview) {
-          try {
-              const url = await uploadFoodImage(imagePreview);
-              if (url) payload.imageUrl = url;
-          } catch (error) {
-              console.error("Gagal upload gambar:", error);
-          }
-      }
+      const logId = await saveFoodLog(payload);
 
-      await saveFoodLog(payload);
+      if (imagePreview && logId) {
+          // Upload image in the background
+          (async () => {
+              try {
+                  const url = await uploadFoodImage(imagePreview);
+                  if (url) {
+                      await updateFoodLogImage(logId, url);
+                  }
+              } catch (error) {
+                  console.error("Gagal upload gambar di latar belakang:", error);
+              }
+          })();
+      }
 
       setShowSaveSheet(false);
       onSaveSuccess();
