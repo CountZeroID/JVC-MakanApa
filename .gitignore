@@ -5,8 +5,4 @@ coverage/
 .DS_Store
 *.log
 *.pdf
-
-# Environment variables
 .env
-.env.*
-!.env.example
