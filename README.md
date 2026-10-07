@@ -1,4 +1,4 @@
-# MakanApa (Juara Vibe Coding) 🍽️
+# MakanApa (#JuaraVibeCoding) 🍽️
 
 **MakanApa** adalah aplikasi web modern berbasis *Progressive Web App* (PWA) untuk melacak asupan nutrisi dan kalori harian secara pintar. Aplikasi ini menggunakan teknologi *Artificial Intelligence* (AI) dari Google Gemini untuk memindai foto makanan dan secara otomatis memperkirakan jumlah kalori, protein, karbohidrat, dan lemak di dalamnya. 
 
@@ -82,9 +82,3 @@ makanapa/
    Aplikasi akan berjalan di `http://localhost:3000`.
 
 ---
-
-## 📝 Catatan Penting
-* Aplikasi ini sangat berfokus pada UI/UX yang dinamis (Mode Gelap/Terang) dan performa yang ringan. 
-* Pastikan *Domain* tempat aplikasi ini berjalan sudah didaftarkan pada *Authorized Domains* di Firebase Console untuk menghindari error saat autentikasi.
-
-*Dibuat untuk event Juara Vibe Coding.* 🚀
