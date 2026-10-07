@@ -67,7 +67,13 @@ makanapa/
    ```
 
 2. **Konfigurasi Environment**
-   Kamu wajib memiliki API Key untuk Firebase dan Gemini. Tambahkan kunci tersebut ke dalam kode atau konfigurasi Firebase-mu (terdapat pada `src/lib/firebase.ts` dan `src/lib/gemini.ts`).
+   Salin file `.env.example` menjadi `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+   Lalu buka file `.env` dan masukkan API key kamu:
+   - `GEMINI_API_KEY`: Dapatkan dari [Google AI Studio](https://aistudio.google.com/apikey)
+   - `APP_URL`: URL lokal atau domain hosting kamu (contoh: `http://localhost:3000`)
 
 3. **Jalankan Development Server**
    ```bash
